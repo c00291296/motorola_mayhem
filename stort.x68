@@ -12,10 +12,12 @@ START:                  ; first instruction of program
     move.b #0, D2
     move.b #128, D3
     move.b #128, D4
+    bsr enableDoubleBuffering
 BIGLOOP:
     add.b #1, D1
     add.b #1, D2
     bsr drawLine
+    k
     bra BIGLOOP
                                
 
@@ -27,6 +29,18 @@ drawLine: ; draws line from (D1.w, D2.w) to (D3.w, D4.w)
     move.l #84, D0
     trap #15
     rts
+    
+enableDoubleBuffering:
+    move.l #92, D0
+    move.b #17, D1
+    trap #15
+    rts
+    
+repaintScreen:
+    move.l #94, D0
+    trap #17
+    rts
+    
     
     END    START        ; last line of source
 
