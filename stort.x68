@@ -52,8 +52,36 @@ clearScreen:
     move.w (SP)+, D1
     rts
     
+projectPoint: ;args: 1:z_point, 2:z_plane, 3:z_eye, 4:x_point, 5:x_eye
+    sub.w d4, d5 ; x0-xp
+    sub.w d1, d3 ;z0-zp
+    divs d3, d5
+    muls d5, d2
+    
+    rts
+    
+; constants
+example_model:
+num_vertices dc.b 5
+num_triangles: dc.b 6
+pyramid_vertices:
+    dc.w -128, 0, 3<<8
+    dc.w -128, 0, 4<<8
+    dc.w 128, 0, 3<<8
+    dc.w 128, 0, 4<<8
+    dc.w 0, $180, 7<<7
+pyramid_triangles:
+    dc.b 0, 1, 2
+    dc.b 2, 3, 0
+    dc.b 0, 4, 1
+    dc.b 1,4,2
+    dc.b 2,4, 3
+    dc.b 3, 4, 0
+    
     
     END    START        ; last line of source
+
+
 
 *~Font name~Courier New~
 *~Font size~10~
