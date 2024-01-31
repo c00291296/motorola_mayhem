@@ -10,7 +10,7 @@ START:                  ; first instruction of program
 * Put program code here
 	;let's try draw some vertices
 	lea pyramid_vertices, A0
-	lea player_position, A1
+	lea player_position, A1
 	bsr renderPoint
 	
 	lea pyramid_vertices+6, A0
@@ -82,27 +82,26 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	
 	move.w 0(a0), d1 ; x
 	sub.w 0(a1), d1 ; x_point - x_player
+	divs D6, D1
+	;asl.w #8, D1
 	muls #SIN_60, D1
 	asr.l #8, D1
-	divs D6, D1
-	asl.w #8, D1
 	
 	move.w 2(a0), D2 ; y
 	sub.w 2(a1), D2 ; y_point- y_player
+	divs D6, D2
+	;asl.w #8, D2
 	muls #SIN_60, D2
 	asr.l #8, D2
-	divs D6, D2
-	asl.w #8, D2	
 	
 	rts
 	
 viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
-	asr.w #8, D1 ; convert from fixed point <<8 to integer
-
-	muls #SCREEN_WIDTH, D1
+	;muls #SCREEN_WIDTH, D1
+	asr.l #8, D1 ; convert from fixed point <<8 to integer
 	
-	muls #SCREEN_HEIGHT, D2
-	asr.w #8, D2 ; adjust so it's and integer too
+	;muls #SCREEN_HEIGHT, D2
+	asr.l #8, D2 ; adjust so it's and integer too
 	
 	add.w #SCREEN_HCENTER, D1
 	neg.w D2
@@ -137,10 +136,10 @@ pyramid_triangles:
     
 player_position dc.w 0,0,0
     
-SCREEN_WIDTH EQU 640
-SCREEN_HEIGHT EQU 480
-SCREEN_VCENTER EQU SCREEN_HEIGHT/2
-SCREEN_HCENTER EQU SCREEN_WIDTH/2
+SCREEN_WIDTH EQU 640>>7
+SCREEN_HEIGHT EQU 480>>5
+SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
+SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
