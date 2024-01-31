@@ -8,6 +8,7 @@
 START:                  ; first instruction of program
 
 * Put program code here
+    bsr setPenWidth
     move.b #0, D1
     move.b #0, D2
     move.b #128, D3
@@ -52,7 +53,12 @@ clearScreen:
     move.w (SP)+, D1
     rts
     
-projectPoint: ;args: 1:z_point, 2:z_plane, 3:z_eye, 4:x_point, 5:x_eye
+setPenWidth: ; args: d1 - width
+    move.b #93, d0
+    trap #15
+    rts
+    
+projectPoint: ;args: a0 - point address, a1 - player position
     sub.w d4, d5 ; x0-xp
     sub.w d1, d3 ;z0-zp
     divs d3, d5
@@ -80,6 +86,7 @@ pyramid_triangles:
     
     
     END    START        ; last line of source
+
 
 
 
