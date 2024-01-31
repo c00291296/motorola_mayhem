@@ -8,7 +8,14 @@
 START:                  ; first instruction of program
 
 * Put program code here
+    lea pyramid_triangles, a0
+    move.b 2(a0), d1
+    move.b #5, d1
     bsr setPenWidth
+    move.w #SCREEN_VCENTER, d2
+    move.w #SCREEN_HCENTER, d1
+    bsr drawPixel
+    
     move.b #0, D1
     move.b #0, D2
     move.b #128, D3
@@ -58,12 +65,19 @@ setPenWidth: ; args: d1 - width
     trap #15
     rts
     
-projectPoint: ;args: a0 - point address, a1 - player position
-    sub.w d4, d5 ; x0-xp
-    sub.w d1, d3 ;z0-zp
-    divs d3, d5
-    muls d5, d2
+drawPixel: ; args: d1 - x, d2 - y
+    move.b #82, d0
+    trap #15
+    rts
     
+projectPoint: ;args: a0 - point address, a1 - player position
+    move.w (a0)+, d0
+    move.w (a0)+, d1
+    move.w (a0)+, d2
+    
+    move.w (a1)+, d3
+    move.w (a1)+, d4
+    move.
     rts
     
 ; constants
@@ -84,8 +98,14 @@ pyramid_triangles:
     dc.b 2,4, 3
     dc.b 3, 4, 0
     
-    
+SCREEN_WIDTH EQU 640
+SCREEN_HEIGHT EQU 480
+SCREEN_VCENTER EQU SCREEN_HEIGHT/2
+SCREEN_HCENTER EQU SCREEN_WIDTH/2
+
+SIN_60 EQU 222 ; in fixed-point rep with <<8
     END    START        ; last line of source
+
 
 
 
