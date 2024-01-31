@@ -98,13 +98,13 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	
 viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
 	;muls #SCREEN_WIDTH, D1
-	asr.l #8, D1 ; convert from fixed point <<8 to integer
+	;asr.l #8, D1 ; convert from fixed point <<8 to integer
 	
 	;muls #SCREEN_HEIGHT, D2
-	asr.l #8, D2 ; adjust so it's and integer too
+	;asr.l #8, D2 ; adjust so it's and integer too
 	
 	add.w #SCREEN_HCENTER, D1
-	neg.w D2
+	;neg.w D2
 	add.w #SCREEN_VCENTER, D2
 	
 	rts
@@ -134,7 +134,7 @@ pyramid_triangles:
     dc.b 2,4, 3
     dc.b 3, 4, 0
     
-player_position dc.w 0,0,0
+player_position dc.w 0,$80,0
     
 SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
