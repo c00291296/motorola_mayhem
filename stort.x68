@@ -8,32 +8,38 @@
 START:                  ; first instruction of program
 
 * Put program code here
-    lea pyramid_triangles, a0
-    move.b 2(a0), d1
-    move.b #5, d1
-    bsr setPenWidth
-    move.w #SCREEN_VCENTER, d2
-    move.w #SCREEN_HCENTER, d1
-    bsr drawPixel
+	;let's try draw some vertices
+	lea pyramid_vertices, A0
+	lea player_position, A1
+	bsr renderPoint
+	
+	lea pyramid_vertices+6, A0
+	bsr renderPoint
+	
+	lea pyramid_vertices+12, A0
+	bsr renderPoint
+	
+	lea pyramid_vertices+18, A0
+	bsr renderPoint
+	
+	lea pyramid_vertices+24, A0
+	bsr renderPoint
     
-    move.b #0, D1
-    move.b #0, D2
-    move.b #128, D3
-    move.b #128, D4
-    bsr enableDoubleBuffering
+	move.b #0, D1
+	move.b #0, D2
+	move.b #128, D3
+	move.b #128, D4
+	bsr enableDoubleBuffering
 BIGLOOP:
-    add.b #1, D1
-    add.b #1, D2
-    bsr clearScreen
-    bsr drawLine
-    bsr repaintScreen
-    bra BIGLOOP
-                               
-
-    SIMHALT             ; halt simulator
-
+	add.b #1, D1
+	add.b #1, D2
+	bsr clearScreen
+	bsr drawLine
+	bsr repaintScreen
+	bra BIGLOOP
+		
+	SIMHALT             ; halt simulator
 * Put variables and constants here
-
 drawLine: ; draws line from (D1.w, D2.w) to (D3.w, D4.w) 
     move.l #84, D0
     trap #15
@@ -70,15 +76,46 @@ drawPixel: ; args: d1 - x, d2 - y
     trap #15
     rts
     
-projectPoint: ;args: a0 - point address, a1 - player position
-    move.w (a0)+, d0
-    move.w (a0)+, d1
-    move.w (a0)+, d2
-    
-    move.w (a1)+, d3
-    move.w (a1)+, d4
-    move.
-    rts
+projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, d2 - y
+	move.w 4(a0), d6
+	sub.w 4(a1), d6 ; z_point - z_player
+	
+	move.w 0(a0), d1 ; x
+	sub.w 0(a1), d1 ; x_point - x_player
+	muls #SIN_60, D1
+	asr.l #8, D1
+	divs D6, D1
+	asl.w #8, D1
+	
+	move.w 2(a0), D2 ; y
+	sub.w 2(a1), D2 ; y_point- y_player
+	muls #SIN_60, D2
+	asr.l #8, D2
+	divs D6, D2
+	asl.w #8, D2	
+	
+	rts
+	
+viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
+	asr.w #8, D1 ; convert from fixed point <<8 to integer
+
+	muls #SCREEN_WIDTH, D1
+	
+	muls #SCREEN_HEIGHT, D2
+	asr.w #8, D2 ; adjust so it's and integer too
+	
+	add.w #SCREEN_HCENTER, D1
+	neg.w D2
+	add.w #SCREEN_VCENTER, D2
+	
+	rts
+	
+renderPoint:
+	bsr projectPoint
+	bsr viewportToScreen
+	bsr drawPixel
+	rts
+	
     
 ; constants
 example_model:
@@ -89,7 +126,7 @@ pyramid_vertices:
     dc.w -128, 0, 4<<8
     dc.w 128, 0, 3<<8
     dc.w 128, 0, 4<<8
-    dc.w 0, $180, 7<<7
+    dc.w 0, $180, 7<<7 ;7<<7 is 3.5 in <<8 fixed point arithmetic
 pyramid_triangles:
     dc.b 0, 1, 2
     dc.b 2, 3, 0
@@ -98,19 +135,22 @@ pyramid_triangles:
     dc.b 2,4, 3
     dc.b 3, 4, 0
     
+player_position dc.w 0,0,0
+    
 SCREEN_WIDTH EQU 640
 SCREEN_HEIGHT EQU 480
 SCREEN_VCENTER EQU SCREEN_HEIGHT/2
 SCREEN_HCENTER EQU SCREEN_WIDTH/2
 
-SIN_60 EQU 222 ; in fixed-point rep with <<8
+SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
 
 
 
 
 
+
 *~Font name~Courier New~
-*~Font size~10~
+*~Font size~16~
 *~Tab type~1~
 *~Tab size~4~
