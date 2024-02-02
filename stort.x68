@@ -12,8 +12,8 @@ START:                  ; first instruction of program
 	bsr enableDoubleBuffering
 BIGLOOP:
 	bsr clearScreen
-	;bsr processGameInput
-	sub.w #1, player_position+0
+	bsr processGameInput
+	;sub.w #1, player_position+4
 	;let's try draw some vertices
 	
 	
@@ -40,18 +40,18 @@ BIGLOOP:
 SIMHALT             ; halt simulator
 * Put variables and constants here
 processGameInput:
-	move.b 'w', D1
+	move.b 'W', D1
 	LSL.l #8, D1
-	move.b 's', D1
+	move.b 'S', D1
 	LSL.l #8, D1
-	move.b 'q', D1
+	move.b 'Q', D1
 	LSL.l #8, D1
-	move.b 'e', D1
+	move.b 'E', D1
 	bsr areKeysPressed
-	move.w #0, D0
-	move.b D1, D0
-	and.w #1, d0
-	add d0, player_position
+	BTST #0, D0
+	BNE end_pgi
+	add.w d0, player_position
+end_pgi
 	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
@@ -104,10 +104,10 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	sub.w 0(a1), d1 ; x_point - x_player
 	
 	muls #SIN_60, D1
-	lsl.l #8, D1
-	lsl.l #8, d1
-	asr.l #8, D1
-	asr.l #8, D1 
+	;lsl.l #8, D1
+	;lsl.l #8, d1
+	;asr.l #8, D1
+	;asr.l #8, D1 
 	divs D6, D1
 	and.l #$0000FFFF, D1
 	;asl.w #8, D1
@@ -116,15 +116,15 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	move.w 2(a0), D2 ; y
 	sub.w 2(a1), D2 ; y_point- y_player
 	
-	lsl.l #8, D2
-	lsl.l #8, d2
-	asr.l #8, D2
-	asr.l #8, D2 
+	muls.w #SIN_60, D2
+	;lsl.l #8, D2
+	;lsl.l #8, d2
+	;asr.l #8, D2
+	;asr.l #8, D2 
 	divs.w D6, D2
 	and.l #$0000FFFF, D2
-	lsl.w #8, D2
-	muls.w #SIN_60, D2
-	lsr.w #8, D2
+	;lsl.w #8, D2
+	;lsr.w #8, D2
 	
 	rts
 	
