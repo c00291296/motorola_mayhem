@@ -11,7 +11,12 @@ START:                  ; first instruction of program
 
 	bsr enableDoubleBuffering
 BIGLOOP:
+	bsr clearScreen
+	;bsr processGameInput
+	sub.w #1, player_position+0
 	;let's try draw some vertices
+	
+	
 	lea pyramid_vertices, A0
 	lea player_position, A1
 
@@ -34,6 +39,26 @@ BIGLOOP:
 	
 SIMHALT             ; halt simulator
 * Put variables and constants here
+processGameInput:
+	move.b 'w', D1
+	LSL.l #8, D1
+	move.b 's', D1
+	LSL.l #8, D1
+	move.b 'q', D1
+	LSL.l #8, D1
+	move.b 'e', D1
+	bsr areKeysPressed
+	move.w #0, D0
+	move.b D1, D0
+	and.w #1, d0
+	add d0, player_position
+	rts
+	
+areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
+	move.b #19, D0
+	trap #15
+	rts
+
 drawLine: ; draws line from (D1.w, D2.w) to (D3.w, D4.w) 
     move.l #84, D0
     trap #15
@@ -46,6 +71,7 @@ enableDoubleBuffering:
     trap #15
     move.l (SP)+, D1
     rts
+   
     
 repaintScreen:
     move.l #94, D0
@@ -76,17 +102,29 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	
 	move.w 0(a0), d1 ; x
 	sub.w 0(a1), d1 ; x_point - x_player
-	divs D6, D1
-	;asl.w #8, D1
+	
 	muls #SIN_60, D1
+	lsl.l #8, D1
+	lsl.l #8, d1
 	asr.l #8, D1
+	asr.l #8, D1 
+	divs D6, D1
+	and.l #$0000FFFF, D1
+	;asl.w #8, D1
+	;lsr.w #8, D1
 	
 	move.w 2(a0), D2 ; y
 	sub.w 2(a1), D2 ; y_point- y_player
-	divs D6, D2
-	;asl.w #8, D2
-	muls #SIN_60, D2
+	
+	lsl.l #8, D2
+	lsl.l #8, d2
 	asr.l #8, D2
+	asr.l #8, D2 
+	divs.w D6, D2
+	and.l #$0000FFFF, D2
+	lsl.w #8, D2
+	muls.w #SIN_60, D2
+	lsr.w #8, D2
 	
 	rts
 	
@@ -98,7 +136,7 @@ viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
 	;asr.l #8, D2 ; adjust so it's and integer too
 	
 	add.w #SCREEN_HCENTER, D1
-	;neg.w D2
+	neg.w D2
 	add.w #SCREEN_VCENTER, D2
 	
 	rts
