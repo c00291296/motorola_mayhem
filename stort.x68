@@ -8,9 +8,13 @@
 START:                  ; first instruction of program
 
 * Put program code here
+
+	bsr enableDoubleBuffering
+BIGLOOP:
 	;let's try draw some vertices
 	lea pyramid_vertices, A0
-	lea player_position, A1
+	lea player_position, A1
+
 	bsr renderPoint
 	
 	lea pyramid_vertices+6, A0
@@ -24,21 +28,11 @@ START:                  ; first instruction of program
 	
 	lea pyramid_vertices+24, A0
 	bsr renderPoint
-    
-	move.b #0, D1
-	move.b #0, D2
-	move.b #128, D3
-	move.b #128, D4
-	bsr enableDoubleBuffering
-BIGLOOP:
-	add.b #1, D1
-	add.b #1, D2
-	bsr clearScreen
-	bsr drawLine
 	bsr repaintScreen
 	bra BIGLOOP
 		
-	SIMHALT             ; halt simulator
+	
+SIMHALT             ; halt simulator
 * Put variables and constants here
 drawLine: ; draws line from (D1.w, D2.w) to (D3.w, D4.w) 
     move.l #84, D0
@@ -143,6 +137,7 @@ SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
