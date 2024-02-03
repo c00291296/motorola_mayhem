@@ -40,18 +40,18 @@ BIGLOOP:
 SIMHALT             ; halt simulator
 * Put variables and constants here
 processGameInput:
-	move.b 'W', D1
+	move.b #'W', D1
 	LSL.l #8, D1
-	move.b 'S', D1
+	move.b #'S', D1
 	LSL.l #8, D1
-	move.b 'Q', D1
+	move.b #'Q', D1
 	LSL.l #8, D1
-	move.b 'E', D1
+	move.b #'E', D1
 	bsr areKeysPressed
-	BTST #0, D0
+	cmp.b #$FF, D1
 	BNE end_pgi
-	add.w d0, player_position
-end_pgi
+	add.w #1, player_position
+end_pgi:
 	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
@@ -129,11 +129,11 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	rts
 	
 viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
-	;muls #SCREEN_WIDTH, D1
-	;asr.l #8, D1 ; convert from fixed point <<8 to integer
+	muls #SCREEN_WIDTH, D1
+	asr.l #1, D1 ; convert from fixed point <<8 to integer
 	
-	;muls #SCREEN_HEIGHT, D2
-	;asr.l #8, D2 ; adjust so it's and integer too
+	muls #SCREEN_WIDTH, D2
+	asr.l #1, D2 ; adjust so it's and integer too
 	
 	add.w #SCREEN_HCENTER, D1
 	neg.w D2
@@ -175,6 +175,7 @@ SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
