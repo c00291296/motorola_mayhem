@@ -18,6 +18,14 @@ BIGLOOP:
 	lea example_triangle+4, A1
 	lea example_triangle+8, A2
 	bsr render2DWireframeTriangle
+	
+	;let's try and draw some 3d model
+	lea example_model, a0
+	lea $9000, a1
+	bsr projectAllModelVertices
+	lea $9000, a1
+	lea example_model, a0
+	bsr drawAllTriangles
 	;let's try draw some vertices
 	
 	
@@ -162,6 +170,7 @@ projectAllModelVertices: ;args: A0 - model address, A1 - where to write the poin
 	move.l A1, -(SP)
 	lea player_position, A1
 	bsr projectPoint
+	bsr viewportToScreen
 	move.l (SP)+, A1
 	move.w D1, 0(A1)
 	move.w D2, 2(A1)
@@ -173,7 +182,48 @@ projectAllModelVertices: ;args: A0 - model address, A1 - where to write the poin
 	move.l (SP)+, A1
 	rts
 
-drawAllModelWireframeTriangles: ;args: A0 - model address A1 - projected points
+drawAllTriangles: ;args: A0 - model address A1 - projected points
+	clr.l d7
+	clr.l d6
+	move.b 1(a0), d7 ; number of triangles
+	move.b 0(A0), d6 ; number of points
+	asl.b #1, d6
+	muls #3, d6
+	add.l #2, A0
+	add.l d6, A0 ; now it's the triangle starting address
+.loop
+	clr.l d1
+	clr.l d2
+	clr.l d3
+	;load p1 address
+	move.b 0(A0), D1 ;load point number
+	asl.w #2, D1 ; every point is 4 bytes
+	add.l A1, D1
+	;add point number to point origin address
+	;load p2 address
+	move.b 1(A0), D2
+	asl.w #2, D2 ; every point is 4 bytes
+	add.l A1, D2
+	;load p3 address
+	move.b 2(A0), D3
+	asl.w #2, D3 ; every point is 4 bytes
+	add.l A1, D3
+	
+	move.l A0, -(SP)
+	move.l A1, -(SP)
+	move.l d1, a0
+	move.l d2, a1
+	move.l d3, a2
+	bsr render2DWireframeTriangle
+	move.l (SP)+, A1
+	move.l (SP)+, A0
+	
+
+	sub.b #1, D7
+	cmp #$00, D7
+	bgt .loop
+
+	rts
     
     
 ; constants
@@ -207,6 +257,7 @@ SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
