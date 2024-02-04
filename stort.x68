@@ -104,27 +104,15 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	sub.w 0(a1), d1 ; x_point - x_player
 	
 	muls #SIN_60, D1
-	;lsl.l #8, D1
-	;lsl.l #8, d1
-	;asr.l #8, D1
-	;asr.l #8, D1 
 	divs D6, D1
 	and.l #$0000FFFF, D1
-	;asl.w #8, D1
-	;lsr.w #8, D1
 	
 	move.w 2(a0), D2 ; y
 	sub.w 2(a1), D2 ; y_point- y_player
 	
 	muls.w #SIN_60, D2
-	;lsl.l #8, D2
-	;lsl.l #8, d2
-	;asr.l #8, D2
-	;asr.l #8, D2 
 	divs.w D6, D2
 	and.l #$0000FFFF, D2
-	;lsl.w #8, D2
-	;lsr.w #8, D2
 	
 	rts
 	
@@ -146,9 +134,28 @@ renderPoint:
 	bsr viewportToScreen
 	bsr drawPixel
 	rts
+
+render2DWireframeTriangle: ;args: A0 - address of the 3 2d points to render
+	move.w 0(A0), D1
+	move.w 2(A0), D2
+	move.w 4(A0), D3
+	move.w 6(A0), D4
+	bsr drawLine
+	move.w 8(A0), D3
+	move.w 12(A0), D4
+	bsr drawLine
+	move.w 4(A0), D1
+	move.w 6(A0), D2
+	bsr drawLine
+	rts
 	
     
+    
 ; constants
+example_triangle:
+	dc.w 5, 5
+	dc.w 120, 5
+	dc.w 5, 120
 example_model:
 num_vertices dc.b 5
 num_triangles: dc.b 6
@@ -175,6 +182,7 @@ SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
