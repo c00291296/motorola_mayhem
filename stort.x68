@@ -15,6 +15,8 @@ BIGLOOP:
 	bsr processGameInput
 	;let's try drawing a 2d triangle
 	lea example_triangle, A0
+	lea example_triangle+4, A1
+	lea example_triangle+8, A2
 	bsr render2DWireframeTriangle
 	;let's try draw some vertices
 	
@@ -137,17 +139,17 @@ renderPoint:
 	bsr drawPixel
 	rts
 
-render2DWireframeTriangle: ;args: A0 - address of the 3 2d points to render
+render2DWireframeTriangle: ;args: A0, A1, A2 - p1, p2, p3
 	move.w 0(A0), D1
 	move.w 2(A0), D2
-	move.w 4(A0), D3
-	move.w 6(A0), D4
+	move.w 0(A1), D3
+	move.w 2(A1), D4
 	bsr drawLine
-	move.w 8(A0), D3
-	move.w 10(A0), D4
+	move.w 0(A2), D3
+	move.w 2(A2), D4
 	bsr drawLine
-	move.w 4(A0), D1
-	move.w 6(A0), D2
+	move.w 0(A1), D1
+	move.w 2(A1), D2
 	bsr drawLine
 	rts
 
@@ -170,8 +172,8 @@ projectAllModelVertices: ;args: A0 - model address, A1 - where to write the poin
 	bgt .loop
 	move.l (SP)+, A1
 	rts
-	
-	
+
+drawAllModelWireframeTriangles: ;args: A0 - model address A1 - projected points
     
     
 ; constants
