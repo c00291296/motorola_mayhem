@@ -13,7 +13,9 @@ START:                  ; first instruction of program
 BIGLOOP:
 	bsr clearScreen
 	bsr processGameInput
-	;sub.w #1, player_position+4
+	;let's try drawing a 2d triangle
+	lea example_triangle, A0
+	bsr render2DWireframeTriangle
 	;let's try draw some vertices
 	
 	
@@ -142,12 +144,33 @@ render2DWireframeTriangle: ;args: A0 - address of the 3 2d points to render
 	move.w 6(A0), D4
 	bsr drawLine
 	move.w 8(A0), D3
-	move.w 12(A0), D4
+	move.w 10(A0), D4
 	bsr drawLine
 	move.w 4(A0), D1
 	move.w 6(A0), D2
 	bsr drawLine
 	rts
+
+projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points
+	move.l a1, -(SP)
+	move.b 0(A0), D7 ; vertex number
+	move.b #0, D6 ; current vertex
+	ADD.L #2, A0
+.loop
+	move.l A1, -(SP)
+	lea player_position, A1
+	bsr projectPoint
+	move.l (SP)+, A1
+	move.w D1, 0(A1)
+	move.w D2, 2(A1)
+	add.l #4, A1
+	add.l #6, A0
+	sub.b #1, D7
+	cmp #$00, D7
+	bgt .loop
+	move.l (SP)+, A1
+	rts
+	
 	
     
     
@@ -155,7 +178,7 @@ render2DWireframeTriangle: ;args: A0 - address of the 3 2d points to render
 example_triangle:
 	dc.w 5, 5
 	dc.w 120, 5
-	dc.w 5, 120
+	dc.w 5, 60
 example_model:
 num_vertices dc.b 5
 num_triangles: dc.b 6
