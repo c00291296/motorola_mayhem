@@ -6,6 +6,7 @@
 *-----------------------------------------------------------
     ORG    $1000
 START:                  ; first instruction of program
+PLAYER_SPEED EQU #20
 
 * Put program code here
 
@@ -62,11 +63,11 @@ processGameInput:
 	bsr areKeysPressed
 	cmp.b #$FF, D1
 	BNE end_pgi
-	add.w #1, player_position
+	add.w #3, player_position
 end_pgi:
 	lsr.l #8, d1
 	move.b d1, d0
-	and #1, d0
+	and #3, d0
 	sub.w d0, player_position
 	rts
 	
@@ -199,6 +200,7 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points
 	clr.l d1
 	clr.l d2
 	clr.l d3
+	lea 0, a2
 	;load p1 address
 	move.b 0(A0), D1 ;load point number
 	asl.w #2, D1 ; every point is 4 bytes
@@ -223,7 +225,7 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points
 	move.l (SP)+, A0
 	
 
-	add #6, A0 ;let's go on to the next triangle, every triangle is 6 bytes
+	add #3, A0 ;let's go on to the next triangle, every triangle is 3 bytes
 	sub.b #1, D7
 	cmp #$00, D7
 	bgt .loop
@@ -247,11 +249,11 @@ pyramid_vertices:
     dc.w 0, $180, 7<<7 ;7<<7 is 3.5 in <<8 fixed point arithmetic
 pyramid_triangles:
     dc.b 0, 1, 2
-    dc.b 2, 3, 0
+    dc.b 2, 3, 1
     dc.b 0, 4, 1
-    dc.b 1,4,2
+    dc.b 1,4,3
     dc.b 2,4, 3
-    dc.b 3, 4, 0
+    dc.b 2, 4, 0
     
 player_position dc.w 0,$80,0
     
