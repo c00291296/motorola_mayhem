@@ -64,6 +64,10 @@ processGameInput:
 	BNE end_pgi
 	add.w #1, player_position
 end_pgi:
+	lsr.l #8, d1
+	move.b d1, d0
+	and #1, d0
+	sub.w d0, player_position
 	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
@@ -219,6 +223,7 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points
 	move.l (SP)+, A0
 	
 
+	add #6, A0 ;let's go on to the next triangle, every triangle is 6 bytes
 	sub.b #1, D7
 	cmp #$00, D7
 	bgt .loop
