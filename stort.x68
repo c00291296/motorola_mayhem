@@ -6,7 +6,7 @@
 *-----------------------------------------------------------
     ORG    $1000
 START:                  ; first instruction of program
-PLAYER_SPEED EQU #20
+PLAYER_SPEED EQU 20
 
 * Put program code here
 
@@ -57,9 +57,9 @@ processGameInput:
 	LSL.l #8, D1
 	move.b #'S', D1
 	LSL.l #8, D1
-	move.b #'Q', D1
+	move.b #'A', D1
 	LSL.l #8, D1
-	move.b #'E', D1
+	move.b #'D', D1
 	bsr areKeysPressed
 	cmp.b #$FF, D1
 	BNE end_pgi
@@ -69,6 +69,16 @@ end_pgi:
 	move.b d1, d0
 	and #3, d0
 	sub.w d0, player_position
+	
+	lsr.l #8, d1
+	move.b d1, d0
+	and #3, d0
+	sub.w d0, player_position+4
+	
+	lsr.l #8, d1
+	move.b d1, d0
+	and #3, d0
+	add.w d0, player_position+4
 	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
@@ -264,6 +274,7 @@ SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
