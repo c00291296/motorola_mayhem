@@ -222,6 +222,18 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points
 	bgt .loop
 
 	rts
+	
+
+
+getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell char
+	move.B #$FF, D0
+	lsl.w #MAP_Z_BITSHIFT, D1
+	lsr.b #(8-MAP_Z_BITSHIFT), D0
+	and D8, D2
+	add.b D2, D1
+	add.l D1, A1
+	move.b (A1), D0.b
+	add 
     
     
 ; constants
@@ -245,12 +257,26 @@ pyramid_triangles:
     dc.b 1,4,3
     dc.b 2,4, 3
     dc.b 2, 4, 0
+    
+floor_tile:
+	dc.b 4 ;v
+	dc.b 2 ;t
+	dc.w -128, 0, 127 ; vertices
+	dc.w 127, 0, 127
+	dc.w 127, 0, -128
+	dc.w -128, 0, -128
+	dc.w 0, 1, 2 ; triangles
+	dc.w 2, 3, 0
 
 example_map:
 	dc.b '########'
 	dc.b '#......#'
-	dc.b '
-
+	dc.b '#..#...#'
+	dc.b '#......#
+	dc.b '#......#'
+	dc.b '#......#
+	dc.b '#......#'
+	dc.b '########'
     
 player_position dc.w 0,$80,0
     
@@ -258,7 +284,7 @@ SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
 SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
-MAP_X_BITSHIFT EQU 3
+MAP_Z_BITSHIFT EQU 3
 MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
