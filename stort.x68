@@ -27,25 +27,6 @@ BIGLOOP:
 	lea $9000, a1
 	lea example_model, a0
 	bsr drawAllTriangles
-	;let's try draw some vertices
-	
-	
-	lea pyramid_vertices, A0
-	lea player_position, A1
-
-	bsr renderPoint
-	
-	lea pyramid_vertices+6, A0
-	bsr renderPoint
-	
-	lea pyramid_vertices+12, A0
-	bsr renderPoint
-	
-	lea pyramid_vertices+18, A0
-	bsr renderPoint
-	
-	lea pyramid_vertices+24, A0
-	bsr renderPoint
 	bsr repaintScreen
 	bra BIGLOOP
 		
@@ -264,6 +245,12 @@ pyramid_triangles:
     dc.b 1,4,3
     dc.b 2,4, 3
     dc.b 2, 4, 0
+
+example_map:
+	dc.b '########'
+	dc.b '#......#'
+	dc.b '
+
     
 player_position dc.w 0,$80,0
     
@@ -271,9 +258,12 @@ SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
 SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
+MAP_X_BITSHIFT EQU 3
+MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
