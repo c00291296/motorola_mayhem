@@ -23,6 +23,8 @@ BIGLOOP:
 	;let's try and draw some 3d model
 	lea example_model, a0
 	lea $9000, a1
+	LEA EXAMPLE_POINT_OFFSET, A2
+	ADD.W #1, 2(A2)
 	bsr projectAllModelVertices
 	lea $9000, a1
 	lea example_model, a0
@@ -104,12 +106,14 @@ drawPixel: ; args: d1 - x, d2 - y
     trap #15
     rts
     
-projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, d2 - y
+projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset; results: d1 - x, d2 - y
 	move.w 4(a0), d6
 	sub.w 4(a1), d6 ; z_point - z_player
+	ADD.W 4(A2), D6 ; z_point - z_player + POINT OFFSET
 	
 	move.w 0(a0), d1 ; x
 	sub.w 0(a1), d1 ; x_point - x_player
+	ADD.W 0(A2), D1 ; + POINT OFFSET
 	
 	muls #SIN_60, D1
 	divs D6, D1
@@ -117,6 +121,7 @@ projectPoint: ;args: a0 - point address, a1 - player position; results: d1 - x, 
 	
 	move.w 2(a0), D2 ; y
 	sub.w 2(a1), D2 ; y_point- y_player
+	ADD.W 2(A2), D2 ; + POINT OFFSET
 	
 	muls.w #SIN_60, D2
 	divs.w D6, D2
@@ -157,7 +162,7 @@ render2DWireframeTriangle: ;args: A0, A1, A2 - p1, p2, p3
 	bsr drawLine
 	rts
 
-projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points
+projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points, A2 - OFFSET
 	move.l a1, -(SP)
 	move.b 0(A0), D7 ; vertex number
 	move.b #0, D6 ; current vertex
@@ -178,7 +183,7 @@ projectAllModelVertices: ;args: A0 - model address, A1 - where to write the poin
 	move.l (SP)+, A1
 	rts
 
-drawAllTriangles: ;args: A0 - model address A1 - projected points
+drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OFFSET
 	clr.l d7
 	clr.l d6
 	move.b 1(a0), d7 ; number of triangles
@@ -229,11 +234,11 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	move.B #$FF, D0
 	lsl.w #MAP_Z_BITSHIFT, D1
 	lsr.b #(8-MAP_Z_BITSHIFT), D0
-	and D8, D2
+	and.b D0, D2
 	add.b D2, D1
 	add.l D1, A1
-	move.b (A1), D0.b
-	add 
+	move.b (A1), D0
+	rts
     
     
 ; constants
@@ -245,11 +250,11 @@ example_model:
 num_vertices dc.b 5
 num_triangles: dc.b 6
 pyramid_vertices:
-    dc.w -128, 0, 3<<8
-    dc.w -128, 0, 4<<8
-    dc.w 128, 0, 3<<8
-    dc.w 128, 0, 4<<8
-    dc.w 0, $180, 7<<7 ;7<<7 is 3.5 in <<8 fixed point arithmetic
+    dc.w -128, 0, -128
+    dc.w -128, 0, 128
+    dc.w 128, 0, -128
+    dc.w 128, 0, 128
+    dc.w 0, $180, 0
 pyramid_triangles:
     dc.b 0, 1, 2
     dc.b 2, 3, 1
@@ -271,14 +276,16 @@ floor_tile:
 example_map:
 	dc.b '########'
 	dc.b '#......#'
-	dc.b '#..#...#'
-	dc.b '#......#
+	dc.b '#..#...#'
 	dc.b '#......#'
-	dc.b '#......#
+	dc.b '#......#'
+	dc.b '#......#'
 	dc.b '#......#'
 	dc.b '########'
     
 player_position dc.w 0,$80,0
+
+EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
     
 SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
@@ -289,6 +296,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
