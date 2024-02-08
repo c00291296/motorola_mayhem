@@ -228,9 +228,26 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 
 	rts
 	
-
+charToModel: ;args d0.b - map cell char ; returns: A0 - model address
+	cmp.b #'#', d0
+	beq .wall
+.floor
+	lea floor_tile, a0
+	bra .end
+.wall
+	lea example_model, a0
+.end
+	rts
+	
+mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; returns A2 - offset address
+	asl #8, d1
+	asl #8, d2
+	move.w d1, 0(A2)
+	move.w d2, 4(A2)
+	rts
 
 getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell char
+	sub.b #MAP_SIDE, D2
 	move.B #$FF, D0
 	lsl.w #MAP_Z_BITSHIFT, D1
 	lsr.b #(8-MAP_Z_BITSHIFT), D0
@@ -296,6 +313,8 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
+
 
 
 
