@@ -247,7 +247,8 @@ mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; retur
 	rts
 
 getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell char
-	sub.b #MAP_SIDE, D2
+	neg.b D2
+	add.b #MAP_SIDE, D2
 	move.B #$FF, D0
 	lsl.w #MAP_Z_BITSHIFT, D1
 	lsr.b #(8-MAP_Z_BITSHIFT), D0
@@ -255,6 +256,27 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	add.b D2, D1
 	add.l D1, A1
 	move.b (A1), D0
+	rts
+
+drawMap: ;args: A1 - the map
+	;init
+	
+.loop
+	;if z < =player.z, goto end (stupid FOV for the time being)
+	lea player_position, A6
+	move.w 4(A6), D7
+	cmp.b D2, D7
+	bge .end
+	;retrieve tile
+	move.b d1, -(SP)
+	move.b d2, -(SP)
+	bsr getMapTIle
+	move.b (SP)+, d2
+	move.b (SP)+, d1
+	;draw model
+	;update coords
+	;goto loop
+.end
 	rts
     
     
