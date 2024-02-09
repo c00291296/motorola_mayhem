@@ -20,8 +20,8 @@ BIGLOOP:
 	lea example_triangle+8, A2
 	bsr render2DWireframeTriangle
 	
-	;lea example_map, A1
-	;bsr drawMap
+	lea example_map, A1
+	bsr drawMap
 	
 	
 	;let's try and draw some 3d model
@@ -243,10 +243,12 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	rts
 	
 mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; returns A2 - offset address
-	asl #8, d1
-	asl #8, d2
+	asl.w #8, d1
+	asl.w #8, d2
 	move.w d1, 0(A2)
 	move.w d2, 4(A2)
+	asr.w #8, d1
+	asr.w #8, d2
 	rts
 
 getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell char
@@ -270,6 +272,7 @@ drawMap: ;args: A1 - the map
 	;if z < =player.z, goto end (stupid FOV for the time being)
 	lea player_position, A6
 	move.w 4(A6), D7
+	asr.w #8, D7 ;round player z to an integer
 	cmp.b D2, D7
 	bge .end
 	;retrieve tile
@@ -286,7 +289,10 @@ drawMap: ;args: A1 - the map
 	move.b d1, -(SP)
 	move.b d2, -(SP)
 	lea $9100, A1 ; model vertices for now
+	move.l A0, -(SP)
 	bsr projectAllModelVertices
+	lea $9100, A1
+	move.l (SP)+, A0
 	bsr drawAllTriangles
 	move.b (SP)+, D2
 	move.b (SP)+, D1
@@ -337,18 +343,15 @@ floor_tile:
 	dc.w 127, 0, 127
 	dc.w 127, 0, -127
 	dc.w -127, 0, -127
-	dc.w 0, 1, 2 ; triangles
-	dc.w 2, 3, 0
+	dc.b 0, 1, 2 ; triangles
+	dc.b 2, 3, 0
 
 example_map:
-	dc.b '########'
-	dc.b '#......#'
-	dc.b '#..#...#'
-	dc.b '#......#'
-	dc.b '#......#'
-	dc.b '#......#'
-	dc.b '#......#'
-	dc.b '########'
+	dc.b '####'
+	dc.b '....'
+	dc.b '....'
+	dc.b '....'
+	
     
 player_position dc.w 0,$80,0
 
@@ -358,8 +361,8 @@ SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
 SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
-MAP_Z_BITSHIFT EQU 3
-MAP_SIDE EQU 8
+MAP_Z_BITSHIFT EQU 2
+MAP_SIDE EQU 4
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
