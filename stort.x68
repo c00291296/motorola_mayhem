@@ -252,12 +252,10 @@ mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; retur
 	rts
 
 getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell char
-	neg.b D2
-	add.b #MAP_SIDE, D2
 	move.B #$FF, D0
-	lsl.w #MAP_Z_BITSHIFT, D1
+	lsl.w #MAP_Z_BITSHIFT, D2
 	lsr.b #(8-MAP_Z_BITSHIFT), D0
-	and.b D0, D2
+	and.b D0, D1
 	add.b D2, D1
 	add.l D1, A1
 	move.b (A1), D0
@@ -265,22 +263,24 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 
 drawMap: ;args: A1 - the map
 	;init
-	move.b 0, D1
-	move.b #(MAP_SIDE-1), D2
+	move.b #0, D1
+	move.b #0, D2
 	
 .loop
 	;if z < =player.z, goto end (stupid FOV for the time being)
 	lea player_position, A6
 	move.w 4(A6), D7
 	asr.w #8, D7 ;round player z to an integer
-	cmp.b D2, D7
-	bge .end
+	cmp.b D2, D7 ;if the cell z is less or equal to players z
+	bge .continue
 	;retrieve tile
+	move.l A1, -(SP)
 	move.b d1, -(SP)
 	move.b d2, -(SP)
 	bsr getMapTIle
 	move.b (SP)+, d2
 	move.b (SP)+, d1
+	move.l (SP)+, A1 
 	;draw model
 	bsr charToModel
 	lea $9000, A2 ; model offset for now
@@ -298,15 +298,16 @@ drawMap: ;args: A1 - the map
 	move.b (SP)+, D1
 	move.l (SP)+, A1 ; pop map
 	;update coords
+.continue
 	add.b #1, d1
 	cmp.b #(MAP_SIDE-1), D1
 	
 	ble .loop
 	
 	move.b #0, D1 ; x goes to 0 again
-	sub.b #1, D2 ; z decreases
-	cmp.b #0, D2 ; are we on zeroth row?
-	blt .end ; if we finished the zeroth row and got -1 we end
+	add.b #1, D2 ; z increases
+	cmp.b #(MAP_SIDE), D2 ; are we on last row?
+	bge .end ; if we finished the last row we end
 	
 	;goto loop
 	bra .loop
