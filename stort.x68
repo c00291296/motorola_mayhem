@@ -20,14 +20,18 @@ BIGLOOP:
 	lea example_triangle+8, A2
 	bsr render2DWireframeTriangle
 	
+	;lea example_map, A1
+	;bsr drawMap
+	
+	
 	;let's try and draw some 3d model
-	lea example_model, a0
-	lea $9000, a1
+	lea floor_tile, a0
+	lea $8000, a1
 	LEA EXAMPLE_POINT_OFFSET, A2
-	ADD.W #1, 2(A2)
+	;ADD.W #1, 2(A2)
 	bsr projectAllModelVertices
-	lea $9000, a1
-	lea example_model, a0
+	lea floor_tile, a0
+	lea $8000, a1
 	bsr drawAllTriangles
 	bsr repaintScreen
 	bra BIGLOOP
@@ -164,7 +168,9 @@ render2DWireframeTriangle: ;args: A0, A1, A2 - p1, p2, p3
 
 projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points, A2 - OFFSET
 	move.l a1, -(SP)
+	clr.l D7
 	move.b 0(A0), D7 ; vertex number
+	sub.b #1, D7
 	move.b #0, D6 ; current vertex
 	ADD.L #2, A0
 .loop
@@ -177,9 +183,7 @@ projectAllModelVertices: ;args: A0 - model address, A1 - where to write the poin
 	move.w D2, 2(A1)
 	add.l #4, A1
 	add.l #6, A0
-	sub.b #1, D7
-	cmp #$00, D7
-	bgt .loop
+	DBRA D7, .loop
 	move.l (SP)+, A1
 	rts
 
@@ -187,9 +191,10 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 	clr.l d7
 	clr.l d6
 	move.b 1(a0), d7 ; number of triangles
+	sub.b #1, D7
 	move.b 0(A0), d6 ; number of points
 	asl.b #1, d6
-	muls #3, d6
+	muls #3, d6 ;every point is three words
 	add.l #2, A0
 	add.l d6, A0 ; now it's the triangle starting address
 .loop
@@ -222,9 +227,7 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 	
 
 	add #3, A0 ;let's go on to the next triangle, every triangle is 3 bytes
-	sub.b #1, D7
-	cmp #$00, D7
-	bgt .loop
+	DBRA D7, .loop
 
 	rts
 	
@@ -260,6 +263,8 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 
 drawMap: ;args: A1 - the map
 	;init
+	move.b 0, D1
+	move.b #(MAP_SIDE-1), D2
 	
 .loop
 	;if z < =player.z, goto end (stupid FOV for the time being)
@@ -274,8 +279,31 @@ drawMap: ;args: A1 - the map
 	move.b (SP)+, d2
 	move.b (SP)+, d1
 	;draw model
+	bsr charToModel
+	lea $9000, A2 ; model offset for now
+	bsr mapModelOffset
+	move.l A1, -(SP) ; push map
+	move.b d1, -(SP)
+	move.b d2, -(SP)
+	lea $9100, A1 ; model vertices for now
+	bsr projectAllModelVertices
+	bsr drawAllTriangles
+	move.b (SP)+, D2
+	move.b (SP)+, D1
+	move.l (SP)+, A1 ; pop map
 	;update coords
+	add.b #1, d1
+	cmp.b #(MAP_SIDE-1), D1
+	
+	ble .loop
+	
+	move.b #0, D1 ; x goes to 0 again
+	sub.b #1, D2 ; z decreases
+	cmp.b #0, D2 ; are we on zeroth row?
+	blt .end ; if we finished the zeroth row and got -1 we end
+	
 	;goto loop
+	bra .loop
 .end
 	rts
     
@@ -305,10 +333,10 @@ pyramid_triangles:
 floor_tile:
 	dc.b 4 ;v
 	dc.b 2 ;t
-	dc.w -128, 0, 127 ; vertices
+	dc.w -127, 0, 127 ; vertices
 	dc.w 127, 0, 127
-	dc.w 127, 0, -128
-	dc.w -128, 0, -128
+	dc.w 127, 0, -127
+	dc.w -127, 0, -127
 	dc.w 0, 1, 2 ; triangles
 	dc.w 2, 3, 0
 
@@ -335,6 +363,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
