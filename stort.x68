@@ -252,37 +252,42 @@ mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; retur
 	rts
 
 getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell char
+	move.l d1, -(SP)
+	move.l d2, -(SP)
+	move.l A1, -(SP)
+
 	move.B #$FF, D0
-	lsl.w #MAP_Z_BITSHIFT, D2
-	lsr.b #(8-MAP_Z_BITSHIFT), D0
-	and.b D0, D1
+	lsl.b #MAP_Z_BITSHIFT, D2
+	;lsr.b #(8-MAP_Z_BITSHIFT), D0
+	;and.b D0, D1
 	add.b D2, D1
+	and.l #$000000FF, D1
 	add.l D1, A1
 	move.b (A1), D0
+	
+	move.l (SP)+, A1
+	move.l (SP)+, D2
+	move.l (SP)+, D1
 	rts
 
 drawMap: ;args: A1 - the map
 	;init
-	move.b #0, D1
-	move.b #0, D2
+	clr.l D1
+	clr.l D2
 	
 .loop
 	;if z < =player.z, goto end (stupid FOV for the time being)
 	lea player_position, A6
 	move.w 4(A6), D7
 	asr.w #8, D7 ;round player z to an integer
+	add.b #1, D7
 	cmp.b D2, D7 ;if the cell z is less or equal to players z
 	bge .continue
 	;retrieve tile
-	move.l A1, -(SP)
-	move.b d1, -(SP)
-	move.b d2, -(SP)
-	bsr getMapTIle
-	move.b (SP)+, d2
-	move.b (SP)+, d1
-	move.l (SP)+, A1 
+	bsr getMapTIle 
 	;draw model
 	bsr charToModel
+	move.l A0, A6
 	lea $9000, A2 ; model offset for now
 	bsr mapModelOffset
 	move.l A1, -(SP) ; push map
@@ -290,9 +295,11 @@ drawMap: ;args: A1 - the map
 	move.b d2, -(SP)
 	lea $9100, A1 ; model vertices for now
 	move.l A0, -(SP)
+	move.l A6, A0
 	bsr projectAllModelVertices
 	lea $9100, A1
 	move.l (SP)+, A0
+	move.l A6, A0
 	bsr drawAllTriangles
 	move.b (SP)+, D2
 	move.b (SP)+, D1
