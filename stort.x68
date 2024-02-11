@@ -22,17 +22,6 @@ BIGLOOP:
 	
 	lea example_map, A1
 	bsr drawMap
-	
-	
-	;let's try and draw some 3d model
-	lea floor_tile, a0
-	lea $8000, a1
-	LEA EXAMPLE_POINT_OFFSET, A2
-	;ADD.W #1, 2(A2)
-	bsr projectAllModelVertices
-	lea floor_tile, a0
-	lea $8000, a1
-	bsr drawAllTriangles
 	bsr repaintScreen
 	bra BIGLOOP
 		
@@ -310,7 +299,8 @@ drawMap: ;args: A1 - the map
 	cmp.b #(MAP_SIDE-1), D1
 	
 	ble .loop
-	
+
+	
 	move.b #0, D1 ; x goes to 0 again
 	add.b #1, D2 ; z increases
 	cmp.b #(MAP_SIDE), D2 ; are we on last row?
@@ -357,7 +347,8 @@ floor_tile:
 example_map:
 	dc.b '####'
 	dc.b '....'
-	dc.b '....'
+	dc.b '....'
+
 	dc.b '....'
 	
     
@@ -374,6 +365,7 @@ MAP_SIDE EQU 4
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
