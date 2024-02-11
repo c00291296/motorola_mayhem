@@ -352,13 +352,13 @@ floor_tile:
 
 example_map:
 	dc.b '####'
-	dc.b '....'
-	dc.b '....'
-
-	dc.b '....'
+	dc.b '#..#'
+	dc.b '#..#'
+	dc.b '####'
 	
     
 player_position dc.w 0,$80,0
+player_theta	dc.b $00
 
 EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
 

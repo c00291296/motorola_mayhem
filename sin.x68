@@ -1,0 +1,286 @@
+*-----------------------------------------------------------
+* Title      : sin.x68
+* Written by :Igor Antonov
+* Date       :11/02/2024
+* Description: sin stuff
+*-----------------------------------------------------------
+
+sin: ;args: d1.b - angle value in hexadecimal degrees (256hdeg = 2pi); returns: d1.w - sin value in >>8 fixed point representation
+	and.l #$000000FF, D1
+	move.l A6, -(SP)
+	lea SINE_TABLE, A6
+	LSL.W #1, D1; x2 cuz each val in tbl is a w
+	add.l D1, A6
+	move.w (A6), D1
+	move.l (SP)+, A6
+	rts
+
+cos: ; args and returns same as sin
+	neg.b D1
+	ADD.b #64, D1 ; 64 is pi/2
+	bsr sin
+	rts
+
+SINE_TABLE: ;from 0 to 255 hexadecimal degrees, 256 hexadecimal degrees make a full turn, length of the radius of a circle is 256/256 in fixed point arithmetic
+	dc.w 6
+	dc.w 13
+	dc.w 19
+	dc.w 25
+	dc.w 31
+	dc.w 38
+	dc.w 44
+	dc.w 50
+	dc.w 56
+	dc.w 62
+	dc.w 68
+	dc.w 74
+	dc.w 80
+	dc.w 86
+	dc.w 92
+	dc.w 98
+	dc.w 104
+	dc.w 109
+	dc.w 115
+	dc.w 121
+	dc.w 126
+	dc.w 132
+	dc.w 137
+	dc.w 142
+	dc.w 147
+	dc.w 152
+	dc.w 157
+	dc.w 162
+	dc.w 167
+	dc.w 172
+	dc.w 177
+	dc.w 181
+	dc.w 185
+	dc.w 190
+	dc.w 194
+	dc.w 198
+	dc.w 202
+	dc.w 206
+	dc.w 209
+	dc.w 213
+	dc.w 216
+	dc.w 220
+	dc.w 223
+	dc.w 226
+	dc.w 229
+	dc.w 231
+	dc.w 234
+	dc.w 237
+	dc.w 239
+	dc.w 241
+	dc.w 243
+	dc.w 245
+	dc.w 247
+	dc.w 248
+	dc.w 250
+	dc.w 251
+	dc.w 252
+	dc.w 253
+	dc.w 254
+	dc.w 255
+	dc.w 255
+	dc.w 256
+	dc.w 256
+	dc.w 256
+	dc.w 256
+	dc.w 256
+	dc.w 255
+	dc.w 255
+	dc.w 254
+	dc.w 253
+	dc.w 252
+	dc.w 251
+	dc.w 250
+	dc.w 248
+	dc.w 247
+	dc.w 245
+	dc.w 243
+	dc.w 241
+	dc.w 239
+	dc.w 237
+	dc.w 234
+	dc.w 231
+	dc.w 229
+	dc.w 226
+	dc.w 223
+	dc.w 220
+	dc.w 216
+	dc.w 213
+	dc.w 209
+	dc.w 206
+	dc.w 202
+	dc.w 198
+	dc.w 194
+	dc.w 190
+	dc.w 185
+	dc.w 181
+	dc.w 177
+	dc.w 172
+	dc.w 167
+	dc.w 162
+	dc.w 157
+	dc.w 152
+	dc.w 147
+	dc.w 142
+	dc.w 137
+	dc.w 132
+	dc.w 126
+	dc.w 121
+	dc.w 115
+	dc.w 109
+	dc.w 104
+	dc.w 98
+	dc.w 92
+	dc.w 86
+	dc.w 80
+	dc.w 74
+	dc.w 68
+	dc.w 62
+	dc.w 56
+	dc.w 50
+	dc.w 44
+	dc.w 38
+	dc.w 31
+	dc.w 25
+	dc.w 19
+	dc.w 13
+	dc.w 6
+	dc.w 0
+	dc.w -6
+	dc.w -13
+	dc.w -19
+	dc.w -25
+	dc.w -31
+	dc.w -38
+	dc.w -44
+	dc.w -50
+	dc.w -56
+	dc.w -62
+	dc.w -68
+	dc.w -74
+	dc.w -80
+	dc.w -86
+	dc.w -92
+	dc.w -98
+	dc.w -104
+	dc.w -109
+	dc.w -115
+	dc.w -121
+	dc.w -126
+	dc.w -132
+	dc.w -137
+	dc.w -142
+	dc.w -147
+	dc.w -152
+	dc.w -157
+	dc.w -162
+	dc.w -167
+	dc.w -172
+	dc.w -177
+	dc.w -181
+	dc.w -185
+	dc.w -190
+	dc.w -194
+	dc.w -198
+	dc.w -202
+	dc.w -206
+	dc.w -209
+	dc.w -213
+	dc.w -216
+	dc.w -220
+	dc.w -223
+	dc.w -226
+	dc.w -229
+	dc.w -231
+	dc.w -234
+	dc.w -237
+	dc.w -239
+	dc.w -241
+	dc.w -243
+	dc.w -245
+	dc.w -247
+	dc.w -248
+	dc.w -250
+	dc.w -251
+	dc.w -252
+	dc.w -253
+	dc.w -254
+	dc.w -255
+	dc.w -255
+	dc.w -256
+	dc.w -256
+	dc.w -256
+	dc.w -256
+	dc.w -256
+	dc.w -255
+	dc.w -255
+	dc.w -254
+	dc.w -253
+	dc.w -252
+	dc.w -251
+	dc.w -250
+	dc.w -248
+	dc.w -247
+	dc.w -245
+	dc.w -243
+	dc.w -241
+	dc.w -239
+	dc.w -237
+	dc.w -234
+	dc.w -231
+	dc.w -229
+	dc.w -226
+	dc.w -223
+	dc.w -220
+	dc.w -216
+	dc.w -213
+	dc.w -209
+	dc.w -206
+	dc.w -202
+	dc.w -198
+	dc.w -194
+	dc.w -190
+	dc.w -185
+	dc.w -181
+	dc.w -177
+	dc.w -172
+	dc.w -167
+	dc.w -162
+	dc.w -157
+	dc.w -152
+	dc.w -147
+	dc.w -142
+	dc.w -137
+	dc.w -132
+	dc.w -126
+	dc.w -121
+	dc.w -115
+	dc.w -109
+	dc.w -104
+	dc.w -98
+	dc.w -92
+	dc.w -86
+	dc.w -80
+	dc.w -74
+	dc.w -68
+	dc.w -62
+	dc.w -56
+	dc.w -50
+	dc.w -44
+	dc.w -38
+	dc.w -31
+	dc.w -25
+	dc.w -19
+	dc.w -13
+	dc.w -6
+    END    START        ; last line of source
+
+
+*~Font name~Courier New~
+*~Font size~16~
+*~Tab type~1~
+*~Tab size~4~
