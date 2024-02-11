@@ -20,6 +20,7 @@ BIGLOOP:
 	lea example_triangle+8, A2
 	bsr render2DWireframeTriangle
 	
+	
 	lea example_map, A1
 	bsr drawMap
 	bsr repaintScreen
@@ -98,6 +99,11 @@ drawPixel: ; args: d1 - x, d2 - y
     move.b #82, d0
     trap #15
     rts
+    
+putStr: ;args: (A1) - a null-terminated string
+	move.b #14, D0
+	trap #15
+	rts
     
 projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset; results: d1 - x, d2 - y
 	move.w 4(a0), d6
@@ -355,6 +361,8 @@ example_map:
 player_position dc.w 0,$80,0
 
 EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
+
+EXAMPLE_STRING DC.B 'HELLO F   ING WORLD!!!', 0
     
 SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
@@ -364,6 +372,9 @@ MAP_Z_BITSHIFT EQU 2
 MAP_SIDE EQU 4
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
+
+	;;;IMPROTANT INCLUDES
+	INCLUDE "sin.x68"
     END    START        ; last line of source
 
 
