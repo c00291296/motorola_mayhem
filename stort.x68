@@ -40,11 +40,11 @@ processGameInput:
 	bsr areKeysPressed
 	cmp.b #$FF, D1
 	BNE end_pgi
-	sub.b #3, player_theta
+	sub.b #1, player_theta
 end_pgi:
 	lsr.l #8, d1
 	move.b d1, d0
-	and #3, d0
+	and #1, d0
 	add.b d0, player_theta
 	
 	lsr.l #8, d1
@@ -115,34 +115,35 @@ projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset
 	sub.w 0(a1), d1 ; x_point - x_player
 	ADD.W 0(A2), D1 ; + POINT OFFSET
 	;rotation stuff for x axis
-	move.w d1, -(SP) ; extra original x1 value
-	MOVE.W D1, -(SP)
+	move.w d1, -(SP) ; extra original x1 value ;a
+	MOVE.W D1, -(SP) ; b
 	move.b player_theta, D1
 	bsr cosine
-	muls (SP)+, D1
-	ASR.W #8, D1 ; cos(a) * x1 calculated
-	move.w d1, -(SP)
+	muls (SP)+, D1 ; b.
+	ASR.L #8, D1 ; cos(a) * x1 calculated
+	move.w d1, -(SP) ;c
 	move.b player_theta, D1
 	bsr sine
 	muls D6, D1
 	ASR.L #8, D1
 	NEG.W D1 ;-sin(a) * z1 calculated
-	ADD.W (SP)+, D1
+	ADD.W (SP)+, D1 ;c.
+	move.w D1, D7 ; save d1 to d7
 	;end rotation stuff
 	;rotation stuff
-	MOVE.W D1, -(SP)
 	move.b player_theta, D1
 	bsr cosine
 	MULS D1, D6
-	MOVE.W (SP)+, D1
 	ASR.L #8, D6  ; cos(a) * z1  calculated
-	move.w d1, d7
 	MOVE.B player_theta, D1
 	bsr sine 
-	MULS (SP)+, D1 ; retrieve extra original x1 value here
+	MULS (SP)+, D1 ; retrieve extra original x1 value here; a.
 	asr.l #8, D1 ;sin(b) * x1 calculated
 	ADD.w D1, D6
+	move.w d7, d1 ; retrieve post-rotation x
 	
+	and.l #$0000FFFF, D1
+	and.l #$0000FFFF, D6
 	;end rotation stuff
 
 	
@@ -410,6 +411,8 @@ SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
 	;;;IMPROTANT INCLUDES
     END    START        ; last line of source
+
+
 
 
 
