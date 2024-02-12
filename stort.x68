@@ -313,10 +313,10 @@ drawMap: ;args: A1 - the map
 	;if z < =player.z, goto end (stupid FOV for the time being)
 	lea player_position, A6
 	move.w 4(A6), D7
+	add.w #128, D7
 	asr.w #8, D7 ;round player z to an integer
-	add.b #1, D7
 	cmp.b D2, D7 ;if the cell z is less or equal to players z
-	bge .continue
+	beq .continue
 	;retrieve tile
 	bsr getMapTIle 
 	;draw model
@@ -400,6 +400,7 @@ example_map:
     
 player_position dc.w 0,$80,0
 player_theta	dc.b $00
+player_dirvec	dc.w 1, 0, 0
 
 EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
 
