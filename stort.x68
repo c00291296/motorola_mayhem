@@ -40,12 +40,12 @@ processGameInput:
 	bsr areKeysPressed
 	cmp.b #$FF, D1
 	BNE end_pgi
-	sub.b #1, player_theta
+	add.b #1, player_theta
 end_pgi:
 	lsr.l #8, d1
 	move.b d1, d0
 	and #1, d0
-	add.b d0, player_theta
+	sub.b d0, player_theta
 	
 	lsr.l #8, d1
 	move.b d1, d0
