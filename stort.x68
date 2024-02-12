@@ -145,6 +145,11 @@ projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset
 	and.l #$0000FFFF, D1
 	and.l #$0000FFFF, D6
 	;end rotation stuff
+	;make sure z isn't zero
+	cmp.w #1, D6
+	bge .all_good
+	move.w #1, d6 ; in case it's 0 or lower. a bit glitchy but who gives a shit.
+.all_good
 
 	
 	muls #SIN_60, D1
@@ -411,6 +416,7 @@ SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
 	;;;IMPROTANT INCLUDES
     END    START        ; last line of source
+
 
 
 
