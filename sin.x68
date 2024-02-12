@@ -5,20 +5,20 @@
 * Description: sin stuff
 *-----------------------------------------------------------
 
-sin: ;args: d1.b - angle value in hexadecimal degrees (256hdeg = 2pi); returns: d1.w - sin value in >>8 fixed point representation
+sine: ;args: d1.b - angle value in hexadecimal degrees (256hdeg = 2pi); returns: d1.w - sin value in >>8 fixed point representation
 	and.l #$000000FF, D1
 	move.l A6, -(SP)
 	lea SINE_TABLE, A6
-	LSL.W #1, D1; x2 cuz each val in tbl is a w
-	add.l D1, A6
+	ASL.W #1, D1 ;x2 cuz each val in tbl is a w
+	add.L D1, A6
 	move.w (A6), D1
 	move.l (SP)+, A6
 	rts
 
-cos: ; args and returns same as sin
+cosine: ; args and returns same as sin
 	neg.b D1
 	ADD.b #64, D1 ; 64 is pi/2
-	bsr sin
+	bsr sine
 	rts
 
 SINE_TABLE: ;from 0 to 255 hexadecimal degrees, 256 hexadecimal degrees make a full turn, length of the radius of a circle is 256/256 in fixed point arithmetic
@@ -277,8 +277,6 @@ SINE_TABLE: ;from 0 to 255 hexadecimal degrees, 256 hexadecimal degrees make a f
 	dc.w -19
 	dc.w -13
 	dc.w -6
-    END    START        ; last line of source
-
 
 *~Font name~Courier New~
 *~Font size~16~

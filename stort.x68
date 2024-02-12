@@ -40,12 +40,12 @@ processGameInput:
 	bsr areKeysPressed
 	cmp.b #$FF, D1
 	BNE end_pgi
-	add.w #3, player_position
+	sub.b #3, player_theta
 end_pgi:
 	lsr.l #8, d1
 	move.b d1, d0
 	and #3, d0
-	sub.w d0, player_position
+	add.b d0, player_theta
 	
 	lsr.l #8, d1
 	move.b d1, d0
@@ -105,14 +105,46 @@ putStr: ;args: (A1) - a null-terminated string
 	trap #15
 	rts
     
-projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset; results: d1 - x, d2 - y
+projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset; results: d1 - x, d2 - y,
+	move.l d7, -(SP)
 	move.w 4(a0), d6
 	sub.w 4(a1), d6 ; z_point - z_player
 	ADD.W 4(A2), D6 ; z_point - z_player + POINT OFFSET
-	
+		
 	move.w 0(a0), d1 ; x
 	sub.w 0(a1), d1 ; x_point - x_player
 	ADD.W 0(A2), D1 ; + POINT OFFSET
+	;rotation stuff for x axis
+	move.w d1, -(SP) ; extra original x1 value
+	MOVE.W D1, -(SP)
+	move.b player_theta, D1
+	bsr cosine
+	muls (SP)+, D1
+	ASR.W #8, D1 ; cos(a) * x1 calculated
+	move.w d1, -(SP)
+	move.b player_theta, D1
+	bsr sine
+	muls D6, D1
+	ASR.L #8, D1
+	NEG.W D1 ;-sin(a) * z1 calculated
+	ADD.W (SP)+, D1
+	;end rotation stuff
+	;rotation stuff
+	MOVE.W D1, -(SP)
+	move.b player_theta, D1
+	bsr cosine
+	MULS D1, D6
+	MOVE.W (SP)+, D1
+	ASR.L #8, D6  ; cos(a) * z1  calculated
+	move.w d1, d7
+	MOVE.B player_theta, D1
+	bsr sine 
+	MULS (SP)+, D1 ; retrieve extra original x1 value here
+	asr.l #8, D1 ;sin(b) * x1 calculated
+	ADD.w D1, D6
+	
+	;end rotation stuff
+
 	
 	muls #SIN_60, D1
 	divs D6, D1
@@ -126,6 +158,7 @@ projectPoint: ;args: a0 - point address, a1 - player position, a2 - point offset
 	divs.w D6, D2
 	and.l #$0000FFFF, D2
 	
+	move.l (SP)+, D7
 	rts
 	
 viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
@@ -317,6 +350,8 @@ drawMap: ;args: A1 - the map
 .end
 	rts
     
+	INCLUDE "sin.x68"
+
     
 ; constants
 example_triangle:
@@ -374,7 +409,6 @@ MAP_SIDE EQU 4
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
 	;;;IMPROTANT INCLUDES
-	INCLUDE "sin.x68"
     END    START        ; last line of source
 
 
