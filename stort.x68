@@ -315,8 +315,15 @@ drawMap: ;args: A1 - the map
 	move.w 4(A6), D7
 	add.w #128, D7
 	asr.w #8, D7 ;round player z to an integer
-	cmp.b D2, D7 ;if the cell z is less or equal to players z
+	cmp.b D2, D7 ;if the cell z is equal to players z
+	bne .x_ok
+.z_ok
+	move.w 0(A6), D7
+	add.w #128, D7
+	asr.w #8, d7
+	cmp.b D1, D7
 	beq .continue
+.x_ok
 	;retrieve tile
 	bsr getMapTIle 
 	;draw model
@@ -392,9 +399,9 @@ floor_tile:
 	dc.b 2, 3, 0
 
 example_map:
-	dc.b '####'
-	dc.b '#..#'
-	dc.b '#..#'
+	dc.b '###.'
+	dc.b '....'
+	dc.b '....'
 	dc.b '####'
 	
     
@@ -417,6 +424,7 @@ SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
 	;;;IMPROTANT INCLUDES
     END    START        ; last line of source
+
 
 
 
