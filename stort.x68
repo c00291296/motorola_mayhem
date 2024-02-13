@@ -46,18 +46,29 @@ end_pgi:
 	move.b d1, d0
 	and #1, d0
 	sub.b d0, player_theta
-	
+.backwards
 	lsr.l #8, d1
-	move.b d1, d0
-	and #3, d0
+	cmp.b #$FF, D1
+	bne .forwards
+	;todo: implement
 	sub.w d0, player_position+4
-	
+.forwards
 	lsr.l #8, d1
-	move.b d1, d0
-	and #3, d0
-	add.w d0, player_position+4
+	cmp.b #$FF, D1
+	bne .end
+	move.b player_theta, D1
+	bsr sine
+	asr.w #4, d1
+	add.w d1, player_position
+	move.b player_theta, D1
+	bsr cosine
+	asr.w #4, d1
+	add.w d1, player_position+4
+.end
 	rts
-	
+
+
+
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
 	move.b #19, D0
 	trap #15
