@@ -50,8 +50,18 @@ end_pgi:
 	lsr.l #8, d1
 	cmp.b #$FF, D1
 	bne .forwards
-	;todo: implement
-	sub.w d0, player_position+4
+	move.l D1, -(SP)
+	move.b player_theta, D1
+	bsr sine
+	neg.w d1
+	asr.w #4, d1
+	add.w d1, player_position
+	move.b player_theta, D1
+	bsr cosine
+	neg.w d1
+	asr.w #4, d1
+	add.w d1, player_position+4
+	move.l (SP)+, D1
 .forwards
 	lsr.l #8, d1
 	cmp.b #$FF, D1
