@@ -132,10 +132,21 @@ processInteractions:
 	asr.w #8, d2
 	bsr getMapTile
 	cmp #'^', D0
-	bne .end
+	bne .osci_spike
 	lea death_spike_message, A1
 	bsr killPlayer
+.osci_spike
+	move.w magic_counter, D1
+	cmp.b #0, D1
+	bge .hide_spike
+.show_spike
+	move.b #'^', example_map+28
+	bra .end
+.hide_spike
+	move.b #'.', example_map+28
+
 .end
+	ADD.W #1, magic_counter
 	rts
 	
 
@@ -518,8 +529,8 @@ example_map:
 	dc.b '########'
 	dc.b '#......#'
 	dc.b '#......#'
+	dc.b '####^###'
 	dc.b '#......#'
-	dc.b '#...^..#'
 	dc.b '#......#'
 	dc.b '#......#'
 	dc.b '########'
@@ -533,6 +544,8 @@ EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
 
 EXAMPLE_STRING DC.B 'HELLO F   ING WORLD!!!', 0
 death_spike_message: dc.b 'You died, got pierced by a spike you stupid kebab!', 0
+
+magic_counter dc.w $0000
 
     
 SCREEN_WIDTH EQU 640>>7
