@@ -25,6 +25,12 @@ BIGLOOP:
 	bsr drawMap
 	bsr repaintScreen
 	bra BIGLOOP
+	
+DEATHLOOP:
+	bsr clearScreen
+	bsr putStr ; printing cause of death from A1
+	bsr repaintScreen
+	bra DEATHLOOP
 		
 	
 SIMHALT             ; halt simulator
@@ -239,7 +245,11 @@ viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
 	add.w #SCREEN_VCENTER, D2
 	
 	rts
-	
+
+killPlayer: ; a1 - message with cause of death
+	add #4, SP
+	bra DEATHLOOP
+
 renderPoint:
 	bsr projectPoint
 	bsr viewportToScreen
@@ -328,8 +338,13 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	cmp.b #'#', d0
 	beq .wall
+	cmp.b #'^', d0
+	beq .death_spike
 .floor
 	lea floor_tile, a0
+	bra .end
+.death_spike
+	lea death_spike, a0
 	bra .end
 .wall
 	lea example_model, a0
@@ -341,8 +356,10 @@ isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passab
 	cmp.b #'#', d0
 	bne .passable
 	move.b #0, D0
+	bra .end
 .passable
 	move.b #$FF, D0
+.end
 	rts
 	
 mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; returns A2 - offset address
@@ -466,12 +483,32 @@ floor_tile:
 	dc.w -127, 0, -127
 	dc.b 0, 1, 2 ; triangles
 	dc.b 2, 3, 0
+	
+death_spike:
+	dc.b 5
+	dc.b 6	
+    dc.w -32, 0, -32
+    dc.w -32, 0, 32
+    dc.w 32, 0, -32
+    dc.w 32, 0, 32
+    dc.w 0, $100, 0
+    dc.b 0, 1, 2
+    dc.b 2, 3, 1
+    dc.b 0, 4, 1
+    dc.b 1,4,3
+    dc.b 2,4, 3
+    dc.b 2, 4, 0
+
 
 example_map:
-	dc.b '###.'
-	dc.b '....'
-	dc.b '....'
-	dc.b '####'
+	dc.b '########'
+	dc.b '#......#'
+	dc.b '#......#'
+	dc.b '#......#'
+	dc.b '#...^..#'
+	dc.b '#......#'
+	dc.b '#......#'
+	dc.b '########'
 	
     
 player_position dc.w $100,$80,$100
@@ -486,8 +523,8 @@ SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
 SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
-MAP_Z_BITSHIFT EQU 2
-MAP_SIDE EQU 4
+MAP_Z_BITSHIFT EQU 3
+MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
