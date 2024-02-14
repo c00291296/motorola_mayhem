@@ -19,7 +19,7 @@ BIGLOOP:
 	lea example_triangle+4, A1
 	lea example_triangle+8, A2
 	bsr render2DWireframeTriangle
-	
+	bsr processInteractions
 	
 	lea example_map, A1
 	bsr drawMap
@@ -122,7 +122,22 @@ end_pgi:
 .end
 	rts
 
-
+processInteractions:
+	move.w player_position, d1
+	move.w player_position+4, d2
+	lea example_map, A1
+	add.w #128, d1
+	add.w #128, d2
+	asr.w #8, D1
+	asr.w #8, d2
+	bsr getMapTile
+	cmp #'^', D0
+	bne .end
+	lea death_spike_message, A1
+	bsr killPlayer
+.end
+	rts
+	
 
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
 	move.b #19, D0
@@ -247,7 +262,6 @@ viewportToScreen: ;args; d1 - x, d2 - y, ;results - d1 - x_screen, d2 - y_screen
 	rts
 
 killPlayer: ; a1 - message with cause of death
-	add #4, SP
 	bra DEATHLOOP
 
 renderPoint:
@@ -518,6 +532,8 @@ player_dirvec	dc.w 1, 0, 0
 EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
 
 EXAMPLE_STRING DC.B 'HELLO F   ING WORLD!!!', 0
+death_spike_message: dc.b 'You died, got pierced by a spike you stupid kebab!', 0
+
     
 SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
