@@ -132,8 +132,13 @@ processInteractions:
 	asr.w #8, d2
 	bsr getMapTile
 	cmp #'^', D0
-	bne .osci_spike
+	bne .sliwall_kill
 	lea death_spike_message, A1
+	bsr killPlayer
+.sliwall_kill:
+	cmp #'#', D0
+	bne .osci_spike
+	lea death_wall_message, A1
 	bsr killPlayer
 .osci_spike
 	move.w magic_counter, D1
@@ -141,10 +146,20 @@ processInteractions:
 	bge .hide_spike
 .show_spike
 	move.b #'^', example_map+28
-	bra .end
+	bra .sliding_wall
 .hide_spike
 	move.b #'.', example_map+28
-
+.sliding_wall
+	move.w magic_counter, d1
+	lsr.b #6, D1
+	move.b #'.', example_map+42
+	move.b #'.', example_map+43
+	move.b #'.', example_map+44
+	move.b #'.', example_map+45
+	lea example_map+42, A1
+	and.l #$000000FF, D1
+	add.l D1, A1
+	move.b #'#', (A1)
 .end
 	ADD.W #1, magic_counter
 	rts
@@ -365,6 +380,8 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	beq .wall
 	cmp.b #'^', d0
 	beq .death_spike
+	cmp.b #'v', d0
+	beq .tv_set
 .floor
 	lea floor_tile, a0
 	bra .end
@@ -373,6 +390,9 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	bra .end
 .wall
 	lea example_model, a0
+	bra .end
+.tv_set
+	lea tv_set, a0
 .end
 	rts
 
@@ -523,6 +543,26 @@ death_spike:
     dc.b 1,4,3
     dc.b 2,4, 3
     dc.b 2, 4, 0
+    
+tv_set:
+	dc.b 10
+	dc.b 5
+	dc.w -64, 0, 0 ;left leg
+	dc.w 64, 0, 0 ; right leg
+	dc.w 0, 64, 0 ; leg fixture
+	dc.w -128, 64, 0 ; lower left corner
+	dc.w 128, 64, 0 ;lower right corner
+	dc.w 128, 196, 0 ; upper right corner
+	dc.w -128, 196, 0 ; upper left corner
+	dc.w 0, 196, 0 ; antenna fixture
+	dc.w -128, 256, 0 ; left antenna
+	dc.w 128, 256, 0 ;right antenna
+	dc.b 0, 1, 2 ;legs
+	dc.b 3, 4, 5 ;monitor half
+	dc.b 5, 6, 3 ;monitor half
+	dc.b 9, 7, 7
+	dc.b 8, 7, 7
+	
 
 
 example_map:
@@ -532,7 +572,7 @@ example_map:
 	dc.b '####^###'
 	dc.b '#......#'
 	dc.b '#......#'
-	dc.b '#......#'
+	dc.b '#....v.#'
 	dc.b '########'
 	
     
@@ -544,8 +584,14 @@ EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
 
 EXAMPLE_STRING DC.B 'HELLO F   ING WORLD!!!', 0
 death_spike_message: dc.b 'You died, got pierced by a spike you stupid kebab!', 0
+death_wall_message: dc.b 'You died, choked inside a wall! Go get some fresh air!', 0
 
 magic_counter dc.w $0000
+
+player_state dc.b $00
+
+PS_BARE_HANDS EQU $00
+PS_TV_SET EQU $01
 
     
 SCREEN_WIDTH EQU 640>>7
