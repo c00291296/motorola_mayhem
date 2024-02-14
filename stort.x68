@@ -50,30 +50,69 @@ end_pgi:
 	lsr.l #8, d1
 	cmp.b #$FF, D1
 	bne .forwards
-	move.l D1, -(SP)
+	lea example_map, A1
 	move.b player_theta, D1
 	bsr sine
 	neg.w d1
 	asr.w #4, d1
-	add.w d1, player_position
+	add.w player_position, d1
+	move.w d1, -(SP)
 	move.b player_theta, D1
 	bsr cosine
 	neg.w d1
 	asr.w #4, d1
-	add.w d1, player_position+4
-	move.l (SP)+, D1
+	add.w player_position+4, d1
+	move.w d1, d2
+	move.w (SP)+, D1 ; nice got the potential positions in registers
+	move.w D1, -(SP)
+	move.w D2, -(SP)
+	add.w #128, D1
+	add.w #128, d2
+	asr.w #8, D1
+	asr.w #8, d2
+	bsr isPassable
+	cmp.b #$FF, D0
+	BNE .backwards_fail
+	move.w (SP)+, D2
+	move.w (SP)+, D1
+	move.w D1, player_position
+	move.w D2, player_position+4
+	bra .end
+.backwards_fail
+	add.l #4, SP
+	bra .end
 .forwards
 	lsr.l #8, d1
 	cmp.b #$FF, D1
 	bne .end
+	lea example_map, A1
 	move.b player_theta, D1
 	bsr sine
 	asr.w #4, d1
-	add.w d1, player_position
+	add.w player_position, d1
+	move.w D1, -(SP)
 	move.b player_theta, D1
 	bsr cosine
 	asr.w #4, d1
-	add.w d1, player_position+4
+	add.w player_position+4, d1
+	move.w d1, d2
+	move.w (SP)+, D1
+	move.w D1, -(SP)
+	move.w D2, -(SP)
+	add.w #128, d1
+	add.w #128, d2
+	asr.w #8, d1
+	asr.w #8, D2
+	bsr isPassable
+	cmp.b #$FF, D0
+	bne .forwards_fail
+	move.w (SP)+, D2
+	move.w (SP)+, D1
+	move.w D1, player_position
+	move.w D2, player_position+4
+	bra .end
+.forwards_fail
+	add.l #4, SP
 .end
 	rts
 
@@ -296,6 +335,15 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	lea example_model, a0
 .end
 	rts
+
+isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passable or not
+	bsr getMapTile
+	cmp.b #'#', d0
+	bne .passable
+	move.b #0, D0
+.passable
+	move.b #$FF, D0
+	rts
 	
 mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; returns A2 - offset address
 	asl.w #8, d1
@@ -426,7 +474,7 @@ example_map:
 	dc.b '####'
 	
     
-player_position dc.w 0,$80,0
+player_position dc.w $100,$80,$100
 player_theta	dc.b $00
 player_dirvec	dc.w 1, 0, 0
 
