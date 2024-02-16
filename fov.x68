@@ -5,6 +5,26 @@
 * Description: simple fov for the game
 *-----------------------------------------------------------
 
+castAllRays:
+	;init
+	move.l #NUM_FOV_RAYS-1, D7
+	;calculate starting ray
+	lea VIEWDIRS, A1
+	move.b player_theta, d3
+	sub.b #21, d3 ; 30 degrees, half our fov
+	asr.b #(8- VIEWDIR_BITS),  d3 ; make it correspond to a ray index
+	muls #6, d3 ; each ray is 6 bytes
+	add.l d3, A1
+.loop
+	;cast ray
+	bsr castFovRay
+	;go on to next ray
+	add.l #6, A1
+	
+	dbra d7, .loop
+.end
+	rts
+
 castFovRay: ;args: a1 - viewdir vector
 	;init
 	move.l A1, -(SP)
@@ -192,6 +212,8 @@ viewdir_31
 	dc.b 0, 2
 	
 FOV_DISTANCE EQU 3
+NUM_FOV_RAYS EQU 6
+VIEWDIR_BITS EQU 5
 
 
 *~Font name~Courier New~
