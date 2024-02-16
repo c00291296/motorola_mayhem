@@ -12,20 +12,24 @@ processFov:
 
 castAllRays:
 	;init
-	move.l #NUM_FOV_RAYS-1, D7
+	move.l #(NUM_FOV_RAYS-1), D7
 	;calculate starting ray
 	lea VIEWDIRS, A1
 	move.b player_theta, d3
-	sub.b #21, d3 ; 30 degrees, half our fov
-	asr.b #(8- VIEWDIR_BITS),  d3 ; make it correspond to a ray index
-	muls #6, d3 ; each ray is 6 bytes
+	sub.b #18, d3 ; 30 degrees, half our fov
+	lsr.b #(8- VIEWDIR_BITS),  d3 ; make it correspond to a ray index
+	and #$000000FF, D3
+	mulu #6, d3 ; each ray is 6 bytes
 	add.l d3, A1
 .loop
 	;cast ray
 	bsr castFovRay
 	;go on to next ray
 	add.l #6, A1
-	
+	cmp.l #(VIEWDIRS+(31*6)), A1
+	ble .skip_wraparound
+	lea VIEWDIRS, A1
+.skip_wraparound
 	dbra d7, .loop
 .end
 	rts
@@ -35,6 +39,8 @@ castFovRay: ;args: a1 - viewdir vector
 	move.l A1, -(SP)
 	move.l D7, -(SP)
 	move.l A2, -(SP)
+	clr.l d1
+	clr.l d2
 	move.l #(FOV_DISTANCE-1), D7
 .loop:
 	;add viewdir vec pos to player pos
@@ -55,9 +61,10 @@ castFovRay: ;args: a1 - viewdir vector
 	lea fov_map, A2
 	and #$000000FF, D1
 	add.l D1, A2
-	asl.w #MAP_Z_OFFSET, D2
+	move.w D2, -(SP)
+	asl.w #MAP_Z_BITSHIFT, D2
 	add.l D2, A2
-	asr.w #MAP_Z_OFFSET, D2
+	move.w (SP)+, D2
 	move.b #$FF, (A2)
 	;if not passable, end loop
 	cmp #0, d0
@@ -73,7 +80,7 @@ castFovRay: ;args: a1 - viewdir vector
 clearFov: ; clears the fov_map setting all its bytes to $00
 	move.l A0, -(SP)
 	move.l D7, -(SP)
-	lea light_map, A0
+	lea fov_map, A0
 	move.w #(MAP_SIDE*MAP_SIDE-1), D7
 .loop:
 	move.b #$00, (A0)
@@ -217,7 +224,7 @@ viewdir_31
 	dc.b 0, 2
 	
 FOV_DISTANCE EQU 3
-NUM_FOV_RAYS EQU 6
+NUM_FOV_RAYS EQU 7
 VIEWDIR_BITS EQU 5
 
 

@@ -21,6 +21,8 @@ BIGLOOP:
 	bsr render2DWireframeTriangle
 	bsr processInteractions
 	
+	bsr processFov
+	
 	lea example_map, A1
 	bsr drawMap
 	bsr repaintScreen
@@ -441,7 +443,14 @@ drawMap: ;args: A1 - the map
 	clr.l D2
 	
 .loop
-	;if z < =player.z, goto end (stupid FOV for the time being)
+	;check if tile is visible
+	move.l A1, -(SP)
+	lea fov_map, A1
+	bsr getMapTile
+	move.l (SP)+, A1
+	cmp.b #$FF, D0
+	bne .continue ; if the square isn't lit, skip it.
+	;end fov check
 	lea player_position, A6
 	move.w 4(A6), D7
 	add.w #128, D7
@@ -495,7 +504,6 @@ drawMap: ;args: A1 - the map
 	rts
     
 	INCLUDE "sin.x68"
-	INCLUDE "fov.x68"
 
     
 ; constants
@@ -589,7 +597,7 @@ death_wall_message: dc.b 'You died, choked inside a wall! Go get some fresh air!
 
 magic_counter dc.w $0000
 
-player_state dc.b $00
+player_state dc.w $00
 
 PS_BARE_HANDS EQU $00
 PS_TV_SET EQU $01
@@ -601,6 +609,8 @@ SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 MAP_Z_BITSHIFT EQU 3
 MAP_SIDE EQU 8
+
+	INCLUDE "fov.x68"
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
