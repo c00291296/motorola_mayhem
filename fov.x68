@@ -1,9 +1,37 @@
 *-----------------------------------------------------------
 * Title      : fov.x68
-* Written by : Igor Antonov
+* Written by : Igor Antonow
 * Date       : 14/02/2024
 * Description: simple fov for the game
 *-----------------------------------------------------------
+
+castFovRay:
+	;init
+	move.l #(FOV_DISTANCE-1), D7
+.loop:
+	;add viewdir vec pos to player pos
+	;check if current cell is passable
+	;if not passable, set fov cell to 0 and end loop
+	;else, set fov cell to $FF and keep looping
+	dbra D7, .loop
+	
+	rts
+
+clearFov: ; clears the fov_map setting all its bytes to $00
+	move.l A0, -(SP)
+	move.l D7, -(SP)
+	lea light_map, A0
+	move.w #(MAP_SIDE*MAP_SIDE-1), D7
+.loop:
+	move.b #$00, (A0)
+	add.l #1, A0
+	DBRA D7, .loop
+
+	move.l (SP)+, D7
+	move.l (SP)+, A0
+	rts
+
+fov_map: ds.b MAP_SIDE*MAP_SIDE
 
 VIEWDIRS:
 viewdir_0
@@ -134,6 +162,9 @@ viewdir_31
 	dc.b 0, 0
 	dc.b 0, 1
 	dc.b 0, 2
+	
+FOV_DISTANCE EQU 3
+
 
 *~Font name~Courier New~
 *~Font size~16~
