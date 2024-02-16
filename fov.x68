@@ -16,17 +16,17 @@ castAllRays:
 	;calculate starting ray
 	lea VIEWDIRS, A1
 	move.b player_theta, d3
-	sub.b #18, d3 ; 30 degrees, half our fov
+	sub.b #32, d3 ; 45 degrees, half our fov
 	lsr.b #(8- VIEWDIR_BITS),  d3 ; make it correspond to a ray index
 	and #$000000FF, D3
-	mulu #6, d3 ; each ray is 6 bytes
+	asl.l #4, d3 ; each ray is 16 bytes
 	add.l d3, A1
 .loop
 	;cast ray
 	bsr castFovRay
 	;go on to next ray
-	add.l #6, A1
-	cmp.l #(VIEWDIRS+(31*6)), A1
+	add.l #16, A1
+	cmp.l #(VIEWDIRS+(63*16)), A1
 	ble .skip_wraparound
 	lea VIEWDIRS, A1
 .skip_wraparound
@@ -62,7 +62,7 @@ castFovRay: ;args: a1 - viewdir vector
 	and #$000000FF, D1
 	add.l D1, A2
 	move.w D2, -(SP)
-	asl.w #MAP_Z_BITSHIFT, D2
+	lsl.w #MAP_Z_BITSHIFT, D2
 	add.l D2, A2
 	move.w (SP)+, D2
 	move.b #$FF, (A2)
@@ -95,137 +95,585 @@ fov_map: ds.b MAP_SIDE*MAP_SIDE
 
 VIEWDIRS:
 viewdir_0
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b 0, 2
+        dc.b 0, 1
+        dc.b 0, 2
+        dc.b 0, 3
+        dc.b 0, 4
+        dc.b 0, 5
+        dc.b 0, 6
+        dc.b 0, 7
+        dc.b 0, 8
 viewdir_1
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 1, 2
+        dc.b 1, 1
+        dc.b 1, 2
+        dc.b 1, 3
+        dc.b 1, 4
+        dc.b 1, 5
+        dc.b 1, 6
+        dc.b 1, 7
+        dc.b 1, 8
 viewdir_2
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 1, 2
+        dc.b 1, 1
+        dc.b 1, 2
+        dc.b 1, 3
+        dc.b 1, 4
+        dc.b 1, 5
+        dc.b 2, 6
+        dc.b 2, 7
+        dc.b 2, 8
 viewdir_3
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 2, 2
+        dc.b 1, 1
+        dc.b 1, 2
+        dc.b 1, 3
+        dc.b 2, 4
+        dc.b 2, 5
+        dc.b 2, 6
+        dc.b 3, 7
+        dc.b 3, 8
 viewdir_4
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 2, 2
+        dc.b 1, 1
+        dc.b 1, 2
+        dc.b 2, 3
+        dc.b 2, 4
+        dc.b 2, 5
+        dc.b 3, 6
+        dc.b 3, 7
+        dc.b 4, 8
 viewdir_5
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 2, 2
+        dc.b 1, 1
+        dc.b 1, 2
+        dc.b 2, 3
+        dc.b 2, 4
+        dc.b 3, 5
+        dc.b 3, 6
+        dc.b 4, 7
+        dc.b 4, 8
 viewdir_6
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 2, 1
+        dc.b 1, 1
+        dc.b 2, 2
+        dc.b 2, 3
+        dc.b 3, 4
+        dc.b 3, 5
+        dc.b 4, 5
+        dc.b 4, 6
+        dc.b 5, 7
 viewdir_7
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 2, 1
+        dc.b 1, 1
+        dc.b 2, 2
+        dc.b 2, 3
+        dc.b 3, 4
+        dc.b 4, 4
+        dc.b 4, 5
+        dc.b 5, 6
+        dc.b 6, 7
 viewdir_8
-	dc.b 0, 0
-	dc.b 1, 1
-	dc.b 2, 1
+        dc.b 1, 1
+        dc.b 2, 2
+        dc.b 3, 3
+        dc.b 3, 3
+        dc.b 4, 4
+        dc.b 5, 5
+        dc.b 5, 5
+        dc.b 6, 6
 viewdir_9
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 2, 0
+        dc.b 1, 1
+        dc.b 2, 2
+        dc.b 3, 2
+        dc.b 4, 3
+        dc.b 4, 4
+        dc.b 5, 4
+        dc.b 6, 5
+        dc.b 7, 6
 viewdir_10
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 2, 0
+        dc.b 1, 1
+        dc.b 2, 2
+        dc.b 3, 2
+        dc.b 4, 3
+        dc.b 5, 3
+        dc.b 5, 4
+        dc.b 6, 4
+        dc.b 7, 5
 viewdir_11
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 2, -1
+        dc.b 1, 1
+        dc.b 2, 1
+        dc.b 3, 2
+        dc.b 4, 2
+        dc.b 5, 3
+        dc.b 6, 3
+        dc.b 7, 4
+        dc.b 8, 4
 viewdir_12
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 2, -1
+        dc.b 1, 1
+        dc.b 2, 1
+        dc.b 3, 2
+        dc.b 4, 2
+        dc.b 5, 2
+        dc.b 6, 3
+        dc.b 7, 3
+        dc.b 8, 4
 viewdir_13
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 2, -1
+        dc.b 1, 1
+        dc.b 2, 1
+        dc.b 3, 1
+        dc.b 4, 2
+        dc.b 5, 2
+        dc.b 6, 2
+        dc.b 7, 3
+        dc.b 8, 3
 viewdir_14
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 1, -1
+        dc.b 1, 1
+        dc.b 2, 1
+        dc.b 3, 1
+        dc.b 4, 1
+        dc.b 5, 1
+        dc.b 6, 2
+        dc.b 7, 2
+        dc.b 8, 2
 viewdir_15
-	dc.b 0, 0
-	dc.b 1, 0
-	dc.b 1, -1
+        dc.b 1, 1
+        dc.b 2, 1
+        dc.b 3, 1
+        dc.b 4, 1
+        dc.b 5, 1
+        dc.b 6, 1
+        dc.b 7, 1
+        dc.b 8, 1
 viewdir_16
-	dc.b 0, 0
-	dc.b 1, -1
-	dc.b 1, -2
+        dc.b 1, 1
+        dc.b 2, 1
+        dc.b 3, 1
+        dc.b 4, 1
+        dc.b 5, 1
+        dc.b 6, 1
+        dc.b 7, 1
+        dc.b 8, 1
 viewdir_17
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b 0, -1
+        dc.b 1, 0
+        dc.b 2, 0
+        dc.b 3, 0
+        dc.b 4, 0
+        dc.b 5, 0
+        dc.b 6, 0
+        dc.b 7, 0
+        dc.b 8, 0
 viewdir_18
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b 0, -1
+        dc.b 1, 0
+        dc.b 2, 0
+        dc.b 3, 0
+        dc.b 4, 0
+        dc.b 5, 0
+        dc.b 6, -1
+        dc.b 7, -1
+        dc.b 8, -1
 viewdir_19
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b -1, -1
+        dc.b 1, 0
+        dc.b 2, 0
+        dc.b 3, 0
+        dc.b 4, -1
+        dc.b 5, -1
+        dc.b 6, -1
+        dc.b 7, -2
+        dc.b 8, -2
 viewdir_20
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b -1, -1
+        dc.b 1, 0
+        dc.b 2, 0
+        dc.b 3, -1
+        dc.b 4, -1
+        dc.b 5, -1
+        dc.b 6, -2
+        dc.b 7, -2
+        dc.b 8, -3
 viewdir_21
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b -1, -1
+        dc.b 1, 0
+        dc.b 2, 0
+        dc.b 3, -1
+        dc.b 4, -1
+        dc.b 5, -2
+        dc.b 6, -2
+        dc.b 7, -3
+        dc.b 8, -3
 viewdir_22
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b -1, 0
+        dc.b 1, 0
+        dc.b 2, -1
+        dc.b 3, -1
+        dc.b 4, -2
+        dc.b 5, -2
+        dc.b 5, -3
+        dc.b 6, -3
+        dc.b 7, -4
 viewdir_23
-	dc.b 0, 0
-	dc.b 0, 0
-	dc.b -1, 0
+        dc.b 1, 0
+        dc.b 2, -1
+        dc.b 3, -1
+        dc.b 4, -2
+        dc.b 4, -3
+        dc.b 5, -3
+        dc.b 6, -4
+        dc.b 7, -5
 viewdir_24
-	dc.b 0, 0
-	dc.b -1, 0
-	dc.b -2, 0
+        dc.b 1, 0
+        dc.b 2, -1
+        dc.b 3, -2
+        dc.b 3, -2
+        dc.b 4, -3
+        dc.b 5, -4
+        dc.b 5, -4
+        dc.b 6, -5
 viewdir_25
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b -1, 1
+        dc.b 1, 0
+        dc.b 2, -1
+        dc.b 2, -2
+        dc.b 3, -3
+        dc.b 4, -3
+        dc.b 4, -4
+        dc.b 5, -5
+        dc.b 6, -6
 viewdir_26
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b -1, 1
+        dc.b 1, 0
+        dc.b 2, -1
+        dc.b 2, -2
+        dc.b 3, -3
+        dc.b 3, -4
+        dc.b 4, -4
+        dc.b 4, -5
+        dc.b 5, -6
 viewdir_27
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b -1, 2
+        dc.b 1, 0
+        dc.b 1, -1
+        dc.b 2, -2
+        dc.b 2, -3
+        dc.b 3, -4
+        dc.b 3, -5
+        dc.b 4, -6
+        dc.b 4, -7
 viewdir_28
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b -1, 2
+        dc.b 1, 0
+        dc.b 1, -1
+        dc.b 2, -2
+        dc.b 2, -3
+        dc.b 2, -4
+        dc.b 3, -5
+        dc.b 3, -6
+        dc.b 4, -7
 viewdir_29
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b -1, 2
+        dc.b 1, 0
+        dc.b 1, -1
+        dc.b 1, -2
+        dc.b 2, -3
+        dc.b 2, -4
+        dc.b 2, -5
+        dc.b 3, -6
+        dc.b 3, -7
 viewdir_30
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b 0, 2
+        dc.b 1, 0
+        dc.b 1, -1
+        dc.b 1, -2
+        dc.b 1, -3
+        dc.b 1, -4
+        dc.b 2, -5
+        dc.b 2, -6
+        dc.b 2, -7
 viewdir_31
-	dc.b 0, 0
-	dc.b 0, 1
-	dc.b 0, 2
+        dc.b 1, 0
+        dc.b 1, -1
+        dc.b 1, -2
+        dc.b 1, -3
+        dc.b 1, -4
+        dc.b 1, -5
+        dc.b 1, -6
+        dc.b 1, -7
+viewdir_32
+        dc.b 1, -1
+        dc.b 1, -2
+        dc.b 1, -3
+        dc.b 1, -4
+        dc.b 1, -5
+        dc.b 1, -6
+        dc.b 1, -7
+        dc.b 1, -8
+viewdir_33
+        dc.b 0, 0
+        dc.b 0, -1
+        dc.b 0, -2
+        dc.b 0, -3
+        dc.b 0, -4
+        dc.b 0, -5
+        dc.b 0, -6
+        dc.b 0, -7
+viewdir_34
+        dc.b 0, 0
+        dc.b 0, -1
+        dc.b 0, -2
+        dc.b 0, -3
+        dc.b 0, -4
+        dc.b -1, -5
+        dc.b -1, -6
+        dc.b -1, -7
+viewdir_35
+        dc.b 0, 0
+        dc.b 0, -1
+        dc.b 0, -2
+        dc.b -1, -3
+        dc.b -1, -4
+        dc.b -1, -5
+        dc.b -2, -6
+        dc.b -2, -7
+viewdir_36
+        dc.b 0, 0
+        dc.b 0, -1
+        dc.b -1, -2
+        dc.b -1, -3
+        dc.b -1, -4
+        dc.b -2, -5
+        dc.b -2, -6
+        dc.b -3, -7
+viewdir_37
+        dc.b 0, 0
+        dc.b 0, -1
+        dc.b -1, -2
+        dc.b -1, -3
+        dc.b -2, -4
+        dc.b -2, -5
+        dc.b -3, -6
+        dc.b -3, -7
+viewdir_38
+        dc.b 0, 0
+        dc.b -1, -1
+        dc.b -1, -2
+        dc.b -2, -3
+        dc.b -2, -4
+        dc.b -3, -4
+        dc.b -3, -5
+        dc.b -4, -6
+viewdir_39
+        dc.b 0, 0
+        dc.b -1, -1
+        dc.b -1, -2
+        dc.b -2, -3
+        dc.b -3, -3
+        dc.b -3, -4
+        dc.b -4, -5
+        dc.b -5, -6
+viewdir_40
+        dc.b 0, 0
+        dc.b -1, -1
+        dc.b -2, -2
+        dc.b -2, -2
+        dc.b -3, -3
+        dc.b -4, -4
+        dc.b -4, -4
+        dc.b -5, -5
+viewdir_41
+        dc.b 0, 0
+        dc.b -1, -1
+        dc.b -2, -1
+        dc.b -3, -2
+        dc.b -3, -3
+        dc.b -4, -3
+        dc.b -5, -4
+        dc.b -6, -5
+viewdir_42
+        dc.b 0, 0
+        dc.b -1, -1
+        dc.b -2, -1
+        dc.b -3, -2
+        dc.b -4, -2
+        dc.b -4, -3
+        dc.b -5, -3
+        dc.b -6, -4
+viewdir_43
+        dc.b 0, 0
+        dc.b -1, 0
+        dc.b -2, -1
+        dc.b -3, -1
+        dc.b -4, -2
+        dc.b -5, -2
+        dc.b -6, -3
+        dc.b -7, -3
+viewdir_44
+        dc.b 0, 0
+        dc.b -1, 0
+        dc.b -2, -1
+        dc.b -3, -1
+        dc.b -4, -1
+        dc.b -5, -2
+        dc.b -6, -2
+        dc.b -7, -3
+viewdir_45
+        dc.b 0, 0
+        dc.b -1, 0
+        dc.b -2, 0
+        dc.b -3, -1
+        dc.b -4, -1
+        dc.b -5, -1
+        dc.b -6, -2
+        dc.b -7, -2
+viewdir_46
+        dc.b 0, 0
+        dc.b -1, 0
+        dc.b -2, 0
+        dc.b -3, 0
+        dc.b -4, 0
+        dc.b -5, -1
+        dc.b -6, -1
+        dc.b -7, -1
+viewdir_47
+        dc.b 0, 0
+        dc.b -1, 0
+        dc.b -2, 0
+        dc.b -3, 0
+        dc.b -4, 0
+        dc.b -5, 0
+        dc.b -6, 0
+        dc.b -7, 0
+viewdir_48
+        dc.b -1, 0
+        dc.b -2, 0
+        dc.b -3, 0
+        dc.b -4, 0
+        dc.b -5, 0
+        dc.b -6, 0
+        dc.b -7, 0
+        dc.b -8, 0
+viewdir_49
+        dc.b 0, 1
+        dc.b -1, 1
+        dc.b -2, 1
+        dc.b -3, 1
+        dc.b -4, 1
+        dc.b -5, 1
+        dc.b -6, 1
+        dc.b -7, 1
+viewdir_50
+        dc.b 0, 1
+        dc.b -1, 1
+        dc.b -2, 1
+        dc.b -3, 1
+        dc.b -4, 1
+        dc.b -5, 2
+        dc.b -6, 2
+        dc.b -7, 2
+viewdir_51
+        dc.b 0, 1
+        dc.b -1, 1
+        dc.b -2, 1
+        dc.b -3, 2
+        dc.b -4, 2
+        dc.b -5, 2
+        dc.b -6, 3
+        dc.b -7, 3
+viewdir_52
+        dc.b 0, 1
+        dc.b -1, 1
+        dc.b -2, 2
+        dc.b -3, 2
+        dc.b -4, 2
+        dc.b -5, 3
+        dc.b -6, 3
+        dc.b -7, 4
+viewdir_53
+        dc.b 0, 1
+        dc.b -1, 1
+        dc.b -2, 2
+        dc.b -3, 2
+        dc.b -4, 3
+        dc.b -5, 3
+        dc.b -6, 4
+        dc.b -7, 4
+viewdir_54
+        dc.b 0, 1
+        dc.b -1, 2
+        dc.b -2, 2
+        dc.b -3, 3
+        dc.b -4, 3
+        dc.b -4, 4
+        dc.b -5, 4
+        dc.b -6, 5
+viewdir_55
+        dc.b 0, 1
+        dc.b -1, 2
+        dc.b -2, 2
+        dc.b -3, 3
+        dc.b -3, 4
+        dc.b -4, 4
+        dc.b -5, 5
+        dc.b -6, 6
+viewdir_56
+        dc.b 0, 1
+        dc.b -1, 2
+        dc.b -2, 3
+        dc.b -2, 3
+        dc.b -3, 4
+        dc.b -4, 5
+        dc.b -4, 5
+        dc.b -5, 6
+viewdir_57
+        dc.b 0, 1
+        dc.b -1, 2
+        dc.b -1, 3
+        dc.b -2, 4
+        dc.b -3, 4
+        dc.b -3, 5
+        dc.b -4, 6
+        dc.b -5, 7
+viewdir_58
+        dc.b 0, 1
+        dc.b -1, 2
+        dc.b -1, 3
+        dc.b -2, 4
+        dc.b -2, 5
+        dc.b -3, 5
+        dc.b -3, 6
+        dc.b -4, 7
+viewdir_59
+        dc.b 0, 1
+        dc.b 0, 2
+        dc.b -1, 3
+        dc.b -1, 4
+        dc.b -2, 5
+        dc.b -2, 6
+        dc.b -3, 7
+        dc.b -3, 8
+viewdir_60
+        dc.b 0, 1
+        dc.b 0, 2
+        dc.b -1, 3
+        dc.b -1, 4
+        dc.b -1, 5
+        dc.b -2, 6
+        dc.b -2, 7
+        dc.b -3, 8
+viewdir_61
+        dc.b 0, 1
+        dc.b 0, 2
+        dc.b 0, 3
+        dc.b -1, 4
+        dc.b -1, 5
+        dc.b -1, 6
+        dc.b -2, 7
+        dc.b -2, 8
+viewdir_62
+        dc.b 0, 1
+        dc.b 0, 2
+        dc.b 0, 3
+        dc.b 0, 4
+        dc.b 0, 5
+        dc.b -1, 6
+        dc.b -1, 7
+        dc.b -1, 8
+viewdir_63
+        dc.b 0, 1
+        dc.b 0, 2
+        dc.b 0, 3
+        dc.b 0, 4
+        dc.b 0, 5
+        dc.b 0, 6
+        dc.b 0, 7
+        dc.b 0, 8
 	
-FOV_DISTANCE EQU 3
-NUM_FOV_RAYS EQU 7
-VIEWDIR_BITS EQU 5
+FOV_DISTANCE EQU 8
+NUM_FOV_RAYS EQU 12
+VIEWDIR_BITS EQU 6
 
 
 *~Font name~Courier New~
