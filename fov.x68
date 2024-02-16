@@ -5,16 +5,44 @@
 * Description: simple fov for the game
 *-----------------------------------------------------------
 
-castFovRay:
+castFovRay: ;args: a1 - viewdir vector
 	;init
+	move.l A1, -(SP)
+	move.l D7, -(SP)
+	move.l A2, -(SP)
 	move.l #(FOV_DISTANCE-1), D7
 .loop:
 	;add viewdir vec pos to player pos
+	move.w player_position, D1
+	add.w #128, d1
+	move.w player_position+4, D2
+	add.w #128, d2
+	asr.w #8, d1
+	asr.w #8, d2
+	add.b (A1)+, D1
+	add.b (A1)+, D2
 	;check if current cell is passable
-	;if not passable, set fov cell to 0 and end loop
-	;else, set fov cell to $FF and keep looping
+	move.l A1, -(SP)
+	lea example_map, A1
+	bsr isPassable
+	move.l (SP)+, A1
+	;set fov cell to $FF
+	lea fov_map, A2
+	and #$000000FF, D1
+	add.l D1, A2
+	asl.w #MAP_Z_OFFSET, D2
+	add.l D2, A2
+	asr.w #MAP_Z_OFFSET, D2
+	move.b #$FF, (A2)
+	;if not passable, end loop
+	cmp #0, d0
+	beq .end
+	;else, keep looping
 	dbra D7, .loop
-	
+.end
+	move.l (SP)+, A2
+	move.l (SP)+, D7
+	move.l (SP)+, A1
 	rts
 
 clearFov: ; clears the fov_map setting all its bytes to $00
