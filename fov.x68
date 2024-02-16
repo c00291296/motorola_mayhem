@@ -16,7 +16,7 @@ castAllRays:
 	;calculate starting ray
 	lea VIEWDIRS, A1
 	move.b player_theta, d3
-	sub.b #32, d3 ; 45 degrees, half our fov
+	sub.b #60, d3 ; 30 degrees, half our fov
 	lsr.b #(8- VIEWDIR_BITS),  d3 ; make it correspond to a ray index
 	and #$000000FF, D3
 	asl.l #4, d3 ; each ray is 16 bytes
@@ -57,6 +57,10 @@ castFovRay: ;args: a1 - viewdir vector
 	lea example_map, A1
 	bsr isPassable
 	move.l (SP)+, A1
+	;if not passable, end loop
+	cmp #0, d0
+	beq .end
+
 	;set fov cell to $FF
 	lea fov_map, A2
 	and #$000000FF, D1
@@ -66,9 +70,11 @@ castFovRay: ;args: a1 - viewdir vector
 	add.l D2, A2
 	move.w (SP)+, D2
 	move.b #$FF, (A2)
-	;if not passable, end loop
-	cmp #0, d0
-	beq .end
+	;set cells around alight too
+	move.b #$FF, 1(A2)
+	move.b #$FF, -1(A2)
+	move.b #$FF, MAP_SIDE(A2)
+	move.b #$FF, -MAP_SIDE(A2)
 	;else, keep looping
 	dbra D7, .loop
 .end
@@ -91,7 +97,9 @@ clearFov: ; clears the fov_map setting all its bytes to $00
 	move.l (SP)+, A0
 	rts
 
+fov_protection1: ds.b MAP_SIDE
 fov_map: ds.b MAP_SIDE*MAP_SIDE
+fov_protection2: ds.b MAP_SIDE
 
 VIEWDIRS:
 viewdir_0
@@ -672,7 +680,7 @@ viewdir_63
         dc.b 0, 8
 	
 FOV_DISTANCE EQU 8
-NUM_FOV_RAYS EQU 12
+NUM_FOV_RAYS EQU 25
 VIEWDIR_BITS EQU 6
 
 
