@@ -603,8 +603,8 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
-	;;;IMPROTANT INCLUDES
     END    START        ; last line of source
+
 
 
 

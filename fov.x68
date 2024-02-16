@@ -5,6 +5,11 @@
 * Description: simple fov for the game
 *-----------------------------------------------------------
 
+processFov:
+	bsr clearFov
+	bsr castAllRays
+	rts
+
 castAllRays:
 	;init
 	move.l #NUM_FOV_RAYS-1, D7
