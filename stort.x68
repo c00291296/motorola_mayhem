@@ -495,6 +495,7 @@ drawMap: ;args: A1 - the map
 	rts
     
 	INCLUDE "sin.x68"
+	INCLUDE "fov.x68"
 
     
 ; constants
