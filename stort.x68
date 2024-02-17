@@ -391,7 +391,7 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	lea death_spike, a0
 	bra .end
 .wall
-	lea example_model, a0
+	lea boring_wall, a0
 	bra .end
 .tv_set
 	lea tv_set, a0
@@ -511,6 +511,7 @@ example_triangle:
 	dc.w 5, 5
 	dc.w 120, 5
 	dc.w 5, 60
+
 example_model:
 num_vertices dc.b 5
 num_triangles: dc.b 6
@@ -527,6 +528,35 @@ pyramid_triangles:
     dc.b 1,4,3
     dc.b 2,4, 3
     dc.b 2, 4, 0
+    
+boring_wall:
+	dc.b 8 ; 8 vertices
+	dc.b 8 ;8 tringles
+	;vertices (lower)
+	dc.w -128, 0, 128
+	dc.w 128, 0, 128
+	dc.w 128, 0, -128
+	dc.w -128, 0, -128
+	;also vertices (upper)
+	dc.w -128, $180, 128
+	dc.w 128, $180, 128
+	dc.w 128, $180, -128
+	dc.w -128, $180, -128
+	;time for triangles
+	;frontal face
+	dc.b 3, 7, 2
+	dc.b 2, 6, 7
+	;left face
+	dc.b 0, 4, 3
+	dc.b 3, 7, 4
+	;right face
+	dc.b 1, 5, 2
+	dc.b 2, 6, 5
+	;back face
+	dc.b 1, 5, 0
+	dc.b 0, 4, 5
+	
+	
     
 floor_tile:
 	dc.b 4 ;v
@@ -615,6 +645,7 @@ MAP_SIDE EQU 8
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
     END    START        ; last line of source
+
 
 
 
