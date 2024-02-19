@@ -133,12 +133,12 @@ processInteractions:
 	asr.w #8, D1
 	asr.w #8, d2
 	bsr getMapTile
-	cmp #'^', D0
+	cmp.b #'^', D0
 	bne .sliwall_kill
 	lea death_spike_message, A1
 	bsr killPlayer
 .sliwall_kill:
-	cmp #'#', D0
+	cmp.b #'#', D0
 	bne .osci_spike
 	lea death_wall_message, A1
 	bsr killPlayer
