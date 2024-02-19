@@ -403,13 +403,14 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passable or not
 	bsr getMapTile
 	cmp.b #'#', d0
-	bne .passable
+	beq .impassable
 	cmp.b #'%', d0
-	bne .passable
-	move.b #0, D0
-	bra .end
+	beq .impassable
 .passable
 	move.b #$FF, D0
+	bra .end
+.impassable
+	move.b #$00, D0
 .end
 	rts
 	
@@ -430,10 +431,10 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	and.l #$000000FF, D1
 	and.l #$000000FF, D2
 
-	move.B #$FF, D0
+	move.w #$FFFF, D0
 	lsl.w #MAP_Z_BITSHIFT, D2
-	;lsr.b #(8-MAP_Z_BITSHIFT), D0
-	;and.b D0, D1
+	lsr.b #(8-MAP_Z_BITSHIFT), D0
+	and.b D0, D1
 	add.w D2, D1
 	and.l #$0000FFFF, D1
 	add.l D1, A1

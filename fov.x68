@@ -58,7 +58,7 @@ castFovRay: ;args: a1 - viewdir vector
 	bsr isPassable
 	move.l (SP)+, A1
 	;if not passable, end loop
-	cmp #0, d0
+	cmp.b #0, d0
 	beq .end
 
 	;set fov cell to $FF
@@ -682,6 +682,7 @@ viewdir_63
 FOV_DISTANCE EQU 8
 NUM_FOV_RAYS EQU 25
 VIEWDIR_BITS EQU 6
+
 
 
 *~Font name~Courier New~
