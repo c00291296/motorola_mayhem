@@ -418,6 +418,7 @@ mapModelOffset: ; args: d1.b - x, d2.b - z, A2 - wrere to write offset to; retur
 	asl.w #8, d2
 	move.w d1, 0(A2)
 	move.w d2, 4(A2)
+	move.w #0, 2(A2)
 	asr.w #8, d1
 	asr.w #8, d2
 	rts
