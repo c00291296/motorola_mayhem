@@ -422,13 +422,15 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	move.l d1, -(SP)
 	move.l d2, -(SP)
 	move.l A1, -(SP)
+	and.l #$000000FF, D1
+	and.l #$000000FF, D2
 
 	move.B #$FF, D0
-	lsl.b #MAP_Z_BITSHIFT, D2
+	lsl.w #MAP_Z_BITSHIFT, D2
 	;lsr.b #(8-MAP_Z_BITSHIFT), D0
 	;and.b D0, D1
-	add.b D2, D1
-	and.l #$000000FF, D1
+	add.w D2, D1
+	and.l #$0000FFFF, D1
 	add.l D1, A1
 	move.b (A1), D0
 	
@@ -542,6 +544,7 @@ boring_wall:
 	dc.w 128, $180, 128
 	dc.w 128, $180, -128
 	dc.w -128, $180, -128
+
 	;time for triangles
 	;frontal face
 	dc.b 3, 7, 2
@@ -605,14 +608,39 @@ tv_set:
 
 
 example_map:
-	dc.b '########'
-	dc.b '#......#'
-	dc.b '#......#'
-	dc.b '####^###'
-	dc.b '#......#'
-	dc.b '#......#'
-	dc.b '#....v.#'
-	dc.b '########'
+	dc.b '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+    dc.b '%.....................#........%'
+    dc.b '%...............#.#.###.#.#####%'
+    dc.b '%>.>.>.>.########.#.....#......%'
+    dc.b '%.^.^.^.^#......##############.%'
+    dc.b '%........#.E..&.#............#.%'
+    dc.b '%........#.F..$.#.##########.#.%'
+    dc.b '%........#.E..&.#...#....#...#.%'
+    dc.b '%#.#######.E..&.###.#..###.###.%'
+    dc.b '%..........E..&.#...#...2......%'
+    dc.b '%.E.E.E....E..&.#.###.#########%'
+    dc.b '%...............#.#...#........%'
+    dc.b '%..E..E...#######.#####.######.%'
+    dc.b '%.........#v....#............#.%'
+    dc.b '%.........#.....#.############.%'
+    dc.b '%..E..E...#.....+.#...#...1....%'
+    dc.b '%.........#.....#.###.#..###.##%'
+    dc.b '%.........#t....#.#...#....#.#.%'
+    dc.b '%..E..E...#######.#.#.###..###.%'
+    dc.b '%...............#...#...#......%'
+    dc.b '%...............##############.%' ;maze lower end
+    dc.b '%..E..E..E..E...........####...%'
+    dc.b '%......................##..#.##%'
+    dc.b '%.................######.,.,..#%'
+    dc.b '%...............###..##,`.`...#%' ;idk wtf is this sokoban for, maybe it unlocks a door or gives you an item or smth
+    dc.b '%.............###....#..,`.,..#%'
+    dc.b '%##.###########_.....+.`,,#.`##%'
+    dc.b '%.............###....#..``,,.#.%'
+    dc.b '%...............###..#..,``.`#.%'
+    dc.b '%...........g.....#####......#.%'
+    dc.b '%....................*########.%'
+    dc.b '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+   
 	
     
 player_position dc.w $100,$80,$100
@@ -637,14 +665,15 @@ SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
 SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
-MAP_Z_BITSHIFT EQU 3
-MAP_SIDE EQU 8
+MAP_Z_BITSHIFT EQU 5
+MAP_SIDE EQU 32
 
 	INCLUDE "fov.x68"
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
     END    START        ; last line of source
+
 
 
 
