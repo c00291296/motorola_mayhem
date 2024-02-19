@@ -380,6 +380,8 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	cmp.b #'#', d0
 	beq .wall
+	cmp.b #'%', d0
+	beq .wall
 	cmp.b #'^', d0
 	beq .death_spike
 	cmp.b #'v', d0
@@ -401,6 +403,8 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passable or not
 	bsr getMapTile
 	cmp.b #'#', d0
+	bne .passable
+	cmp.b #'%', d0
 	bne .passable
 	move.b #0, D0
 	bra .end
