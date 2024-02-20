@@ -38,6 +38,11 @@ DEATHLOOP:
 SIMHALT             ; halt simulator
 * Put variables and constants here
 processGameInput:
+	;CHECK FOR SPACE
+	MOVE.B ACTION_BUTTON, D1
+	bsr areKeysPressed
+	move.b D1, IS_ACTION_PRESSED
+	;CHECK FOR DIRECTIONAL MOVEMENT
 	move.b #'W', D1
 	LSL.l #8, D1
 	move.b #'S', D1
@@ -111,6 +116,10 @@ end_pgi:
 	add.w #128, d2
 	asr.w #8, d1
 	asr.w #8, D2
+	cmp.b #$FF, IS_ACTION_PRESSED
+	bne .no_action
+	bsr processAction
+.no_action
 	bsr isPassable
 	cmp.b #$FF, D0
 	bne .forwards_fail
@@ -123,6 +132,15 @@ end_pgi:
 	add.l #4, SP
 .end
 	rts
+
+processAction:
+	bsr getMapTile
+	cmp.b #'+', D0
+	bne .not_door
+	move.b #'/', D0
+	bsr setMapTile 
+.not_door
+	rts 
 
 processInteractions:
 	move.w player_position, d1
@@ -467,7 +485,7 @@ setMapTile: ; args: d1.b - x, d2.b - z, A1 - the map, D0.b - map cell char to se
 	add.w D2, D1
 	and.l #$0000FFFF, D1
 	add.l D1, A1
-	move.b (SP)+, A1
+	move.b (SP)+, (A1)
 	
 	move.l (SP)+, A1
 	move.l (SP)+, D2
@@ -714,6 +732,12 @@ SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
 MAP_Z_BITSHIFT EQU 5
 MAP_SIDE EQU 32
+
+;;; CONTROLS
+ACTION_BUTTON DC.B ' '
+
+; control stuff
+IS_ACTION_PRESSED DC.B $00
 
 	INCLUDE "fov.x68"
 
