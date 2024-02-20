@@ -452,6 +452,28 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	move.l (SP)+, D1
 	rts
 
+setMapTile: ; args: d1.b - x, d2.b - z, A1 - the map, D0.b - map cell char to set the value to
+	move.l d1, -(SP)
+	move.l d2, -(SP)
+	move.l A1, -(SP)
+	move.b D0, -(SP)
+	and.l #$000000FF, D1
+	and.l #$000000FF, D2
+
+	move.w #$FFFF, D0
+	lsl.w #MAP_Z_BITSHIFT, D2
+	lsr.b #(8-MAP_Z_BITSHIFT), D0
+	and.b D0, D1
+	add.w D2, D1
+	and.l #$0000FFFF, D1
+	add.l D1, A1
+	move.b (SP)+, A1
+	
+	move.l (SP)+, A1
+	move.l (SP)+, D2
+	move.l (SP)+, D1
+	rts
+
 drawMap: ;args: A1 - the map
 	;init
 	clr.l D1
