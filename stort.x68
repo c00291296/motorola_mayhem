@@ -385,7 +385,9 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	cmp.b #'^', d0
 	beq .death_spike
 	cmp.b #'v', d0
-	beq .tv_set
+	beq .tv_set
+	cmp.b #'+', d0
+	beq .closed_door
 .floor
 	lea floor_tile, a0
 	bra .end
@@ -394,6 +396,9 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	bra .end
 .wall
 	lea boring_wall, a0
+	bra .end
+.closed_door
+	lea closed_door, a0
 	bra .end
 .tv_set
 	lea tv_set, a0
@@ -405,6 +410,8 @@ isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passab
 	cmp.b #'#', d0
 	beq .impassable
 	cmp.b #'%', d0
+	beq .impassable
+	cmp.b #'+', d0
 	beq .impassable
 .passable
 	move.b #$FF, D0
@@ -611,11 +618,23 @@ tv_set:
 	dc.b 9, 7, 7
 	dc.b 8, 7, 7
 	
+	dc.b 0 ; word alignment junk
+
+closed_door:
+	dc.b 4
+	dc.b 2
+	dc.w 0, 0, 128
+	dc.w 0, 0, -128
+	dc.w 0, $180, 128
+	dc.w 0, $180, -128
+	dc.b 0, 1, 2
+	dc.b 1, 2, 3
+	
 
 
 example_map:
 	dc.b '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-    dc.b '%.....................#........%'
+    dc.b '%...............+.....#........%'
     dc.b '%...............#.#.###.#.#####%'
     dc.b '%>.>.>.>.########.#.....#......%'
     dc.b '%.^.^.^.^#......##############.%'
@@ -679,6 +698,7 @@ MAP_SIDE EQU 32
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
     END    START        ; last line of source
+
 
 
 
