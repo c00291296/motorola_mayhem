@@ -133,14 +133,87 @@ end_pgi:
 .end
 	rts
 
-processAction:
+processAction: ;all action is performing by pressing forward and pressing the action button.
 	bsr getMapTile
 	cmp.b #'+', D0
 	bne .not_door
 	move.b #'/', D0
 	bsr setMapTile 
+	bra .end
 .not_door
-	rts 
+	cmp.b #'`', D0 ; sokoban crate
+	bne .not_crate
+	bsr canPush
+	cmp.b #$FF, D0
+	bne .end
+	move.b '.', D0
+	bsr setMapTile
+	bsr getPushLoc
+	bsr getMapTile
+	bsr getTileAfterPush ; whether it is '.' or ';'
+	bsr setMapTile
+.not_crate
+	cmp.b #';', D0 ; sokoban crate in hole
+	bne .not_crateh
+	bsr canPush
+	cmp.b #$FF, D0
+	bne .end
+	move.b #',', D0
+	bsr setMapTile
+	bsr getPushLoc
+	bsr getMapTile
+	bsr getTileAfterPush ; whether it is '.' or ';'
+	bsr setMapTile
+.not_crateh
+.end
+	rts
+
+canPush: ; args: D1.b - x, D2.b - z, A1 - the map
+	move.l D1, -(SP)
+	move.l D2, -(SP)
+	
+	bsr getPushLoc
+	bsr isPassable
+	
+	move.l (SP)+, D1
+	move.l (SP)+, D2
+	rts
+
+getPushLoc: ;args: D1 - x, D2 - z, A1 - the map
+	move.l D3, -(SP)
+	move.l D4, -(SP)
+	
+	move.w player_position, D3
+	move.w player_position+4, D4
+	add.w #128, D3
+	add.w #128, D4
+	asr.w #8, D3
+	asr.w #8, D4
+	
+	neg.b d3
+	neg.b d4
+	add.b d1, d3
+	add.b d2, d4 ;now we've got push direction vector (d3, d4)
+	
+	add.b d3, d1
+	add.b d4, d2 ; could be optimised by bitshifting d1, d2 by 1 at the start
+	; whatever, we're done here, time to return
+	move.l (SP)+, D4
+	move.l (SP)+, D5
+	rts
+
+getTileAfterPush: ; args: d0.b - tile before crate was pushed onto it
+	cmp.b #',', D0
+	bne .floor
+	move.b #';', D0
+	bra .end
+.floor
+	move.b #'`', D0
+.end
+	rts
+	
+
+
 
 processInteractions:
 	move.w player_position, d1
@@ -403,7 +476,8 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	cmp.b #'^', d0
 	beq .death_spike
 	cmp.b #'v', d0
-	beq .tv_set
+	beq .tv_set
+
 	cmp.b #'+', d0
 	beq .closed_door
 .floor
@@ -744,6 +818,7 @@ IS_ACTION_PRESSED DC.B $00
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
     END    START        ; last line of source
+
 
 
 
