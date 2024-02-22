@@ -800,7 +800,7 @@ crater:
 	dc.w -127, -64, 127 ; vertices
 	dc.w 127, -64, 127
 	dc.w 127, -64, -127
-	dc.w -127, 64, -127
+	dc.w -127, -64, -127
 	dc.b 0, 1, 2 ; triangles
 	dc.b 2, 3, 0
 	
