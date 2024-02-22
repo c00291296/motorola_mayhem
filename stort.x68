@@ -200,7 +200,8 @@ getPushLoc: ;args: D1 - x, D2 - z, A1 - the map
 	; whatever, we're done here, time to return
 	move.l (SP)+, D4
 	move.l (SP)+, D3
-	rts
+	rts
+
 
 getTileAfterPush: ; args: d0.b - tile before crate was pushed onto it
 	cmp.b #',', D0
@@ -208,7 +209,8 @@ getTileAfterPush: ; args: d0.b - tile before crate was pushed onto it
 	move.b #';', D0
 	bra .end
 .floor
-	move.b #'`', D0
+	move.b #'`', D0
+
 .end
 	rts
 	
@@ -223,7 +225,14 @@ processInteractions:
 	add.w #128, d2
 	asr.w #8, D1
 	asr.w #8, d2
-	bsr getMapTile
+	bsr getMapTile
+	cmp.b #',', D0
+	bne .no_crater
+	move.w #$40, player_position+2
+	bra .spikedeath
+.no_crater
+	move.w #$80, player_position+2
+.spikedeath
 	cmp.b #'^', D0
 	bne .sliwall_kill
 	lea death_spike_message, A1
@@ -519,7 +528,8 @@ isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passab
 	cmp.b #'%', d0
 	beq .impassable
 	cmp.b #'+', d0
-	beq .impassable
+	beq .impassable
+
 	cmp.b #'`', d0
 	beq .impassable
 	cmp.b #';', d0
@@ -835,7 +845,8 @@ crateh:
 	dc.b 4, 5, 6
 	dc.b 4, 7, 6
 
-
+
+
 example_map:
 	dc.b '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     dc.b '%...............+.....#........%'
@@ -908,6 +919,7 @@ IS_ACTION_PRESSED DC.B $00
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
     END    START        ; last line of source
+
 
 
 
