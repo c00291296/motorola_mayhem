@@ -175,8 +175,8 @@ canPush: ; args: D1.b - x, D2.b - z, A1 - the map
 	bsr getPushLoc
 	bsr isPassable
 	
-	move.l (SP)+, D1
 	move.l (SP)+, D2
+	move.l (SP)+, D1
 	rts
 
 getPushLoc: ;args: D1 - x, D2 - z, A1 - the map
@@ -199,7 +199,7 @@ getPushLoc: ;args: D1 - x, D2 - z, A1 - the map
 	add.b d4, d2 ; could be optimised by bitshifting d1, d2 by 1 at the start
 	; whatever, we're done here, time to return
 	move.l (SP)+, D4
-	move.l (SP)+, D5
+	move.l (SP)+, D3
 	rts
 
 getTileAfterPush: ; args: d0.b - tile before crate was pushed onto it
