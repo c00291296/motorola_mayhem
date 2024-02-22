@@ -504,6 +504,10 @@ isPassable: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passab
 	cmp.b #'%', d0
 	beq .impassable
 	cmp.b #'+', d0
+	beq .impassable
+	cmp.b #'`', d0
+	beq .impassable
+	cmp.b #';', d0
 	beq .impassable
 .passable
 	move.b #$FF, D0
@@ -744,8 +748,79 @@ closed_door:
 	dc.b 0, 1, 2
 	dc.b 1, 2, 3
 	
+crate:
+	dc.b 8 ; 8 vertices
+	dc.b 10 ;8 tringles
+	;vertices (lower)
+	dc.w -128, 0, 128
+	dc.w 128, 0, 128
+	dc.w 128, 0, -128
+	dc.w -128, 0, -128
+	;also vertices (upper)
+	dc.w -128, $80, 128
+	dc.w 128, $80, 128
+	dc.w 128, $80, -128
+	dc.w -128, $80, -128
 
+	;time for triangles
+	;frontal face
+	dc.b 3, 7, 2
+	dc.b 2, 6, 7
+	;left face
+	dc.b 0, 4, 3
+	dc.b 3, 7, 4
+	;right face
+	dc.b 1, 5, 2
+	dc.b 2, 6, 5
+	;back face
+	dc.b 1, 5, 0
+	dc.b 0, 4, 5
+	;upper face
+	dc.b 4, 5, 6
+	dc.b 4, 7, 6
 
+crater:
+	dc.b 4 ;v
+	dc.b 2 ;t
+	dc.w -127, -64, 127 ; vertices
+	dc.w 127, -64, 127
+	dc.w 127, -64, -127
+	dc.w -127, 64, -127
+	dc.b 0, 1, 2 ; triangles
+	dc.b 2, 3, 0
+	
+crateh:
+	dc.b 8 ; 8 vertices
+	dc.b 10 ;8 tringles
+	;vertices (lower)
+	dc.w -128, 0, 128
+	dc.w 128, 0, 128
+	dc.w 128, 0, -128
+	dc.w -128, 0, -128
+	;also vertices (upper)
+	dc.w -128, $40, 128
+	dc.w 128, $40, 128
+	dc.w 128, $40, -128
+	dc.w -128, $40, -128
+
+	;time for triangles
+	;frontal face
+	dc.b 3, 7, 2
+	dc.b 2, 6, 7
+	;left face
+	dc.b 0, 4, 3
+	dc.b 3, 7, 4
+	;right face
+	dc.b 1, 5, 2
+	dc.b 2, 6, 5
+	;back face
+	dc.b 1, 5, 0
+	dc.b 0, 4, 5
+	;upper face
+	dc.b 4, 5, 6
+	dc.b 4, 7, 6
+
+
 example_map:
 	dc.b '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     dc.b '%...............+.....#........%'
