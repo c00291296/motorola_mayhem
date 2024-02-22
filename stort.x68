@@ -480,6 +480,12 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 
 	cmp.b #'+', d0
 	beq .closed_door
+	cmp.b #'`', d0
+	beq .crate
+	cmp.b #';', d0
+	beq .crateh
+	cmp.b #',', d0
+	beq .crater
 .floor
 	lea floor_tile, a0
 	bra .end
@@ -491,6 +497,15 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	bra .end
 .closed_door
 	lea closed_door, a0
+	bra .end
+.crate
+	lea crate, a0
+	bra .end
+.crateh
+	lea crateh, a0
+	bra .end
+.crater
+	lea crater, a0
 	bra .end
 .tv_set
 	lea tv_set, a0
@@ -857,7 +872,7 @@ example_map:
    
 	
     
-player_position dc.w $100,$80,$100
+player_position dc.w $1C00,$80,$1600
 player_theta	dc.b $00
 player_dirvec	dc.w 1, 0, 0
 
