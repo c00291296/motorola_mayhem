@@ -34,6 +34,22 @@ castAllRays:
 .end
 	rts
 
+isTranslucent: ;args: d1. b - x, d2.b - z, a1 - the map; returns - D0.b - if passable or not
+	bsr getMapTile
+	cmp.b #'#', d0
+	beq .opaque
+	cmp.b #'%', d0
+	beq .opaque
+	cmp.b #'+', d0
+	beq .opaque
+.translucent
+	move.b #$FF, D0
+	bra .end
+.opaque
+	move.b #$00, D0
+.end
+	rts
+
 castFovRay: ;args: a1 - viewdir vector
 	;init
 	move.l A1, -(SP)
@@ -55,7 +71,7 @@ castFovRay: ;args: a1 - viewdir vector
 	;check if current cell is passable
 	move.l A1, -(SP)
 	lea example_map, A1
-	bsr isPassable
+	bsr isTranslucent
 	move.l (SP)+, A1
 	;if not passable, end loop
 	cmp.b #0, d0
@@ -682,6 +698,7 @@ viewdir_63
 FOV_DISTANCE EQU 8
 NUM_FOV_RAYS EQU 25
 VIEWDIR_BITS EQU 6
+
 
 
 
