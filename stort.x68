@@ -25,6 +25,10 @@ BIGLOOP:
 	
 	lea example_map, A1
 	bsr drawMap
+	
+
+	bsr getPlayerStateStr
+	bsr putStr
 	bsr repaintScreen
 	bra BIGLOOP
 	
@@ -225,7 +229,8 @@ processInteractions:
 	add.w #128, d2
 	asr.w #8, D1
 	asr.w #8, d2
-	bsr getMapTile
+	bsr getMapTile
+
 	cmp.b #',', D0
 	bne .no_crater
 	move.w #$40, player_position+2
@@ -660,6 +665,16 @@ drawMap: ;args: A1 - the map
 	bra .loop
 .end
 	rts
+
+getPlayerStateStr: 
+	cmp.w #PS_PICKAXE, player_state
+	bne .bare_hands
+	lea holding_pickaxe_msg, A1
+	bra .end
+.bare_hands
+	lea bare_handed_msg, A1
+.end
+	rts
     
 	INCLUDE "sin.x68"
 
@@ -893,12 +908,15 @@ EXAMPLE_STRING DC.B 'HELLO F   ING WORLD!!!', 0
 death_spike_message: dc.b 'You died, got pierced by a spike you stupid kebab!', 0
 death_wall_message: dc.b 'You died, choked inside a wall! Go get some fresh air!', 0
 
+holding_pickaxe_msg dc.b 'Holding pickaxe.', 0
+bare_handed_msg dc.b 'Bare-handed.', 0
+
 magic_counter dc.w $0000
 
 player_state dc.w $00
 
 PS_BARE_HANDS EQU $00
-PS_TV_SET EQU $01
+PS_PICKAXE EQU $01
 
     
 SCREEN_WIDTH EQU 640>>7
@@ -919,6 +937,8 @@ IS_ACTION_PRESSED DC.B $00
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
 
     END    START        ; last line of source
+
+
 
 
 
