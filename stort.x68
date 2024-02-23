@@ -266,7 +266,11 @@ processInteractions:
 	asr.w #8, D1
 	asr.w #8, d2
 	bsr getMapTile
-
+	cmp.b #'1', D0
+	bne .no_telep
+	move.w #$1800, player_position
+	move.w #$0900, player_position+4 ;teleport player to teleportation point 2
+.no_telep
 	cmp.b #',', D0
 	bne .no_crater
 	move.w #$40, player_position+2
@@ -935,7 +939,8 @@ example_map:
 	
     
 ;player_position dc.w $1C00,$80,$1600
-player_position dc.w $100, $80, $100
+;player_position dc.w $100, $80, $100
+player_position dc.w $1D00, $80, $0F00
 player_theta	dc.b $00
 player_dirvec	dc.w 1, 0, 0
 
