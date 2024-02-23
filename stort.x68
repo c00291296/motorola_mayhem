@@ -169,6 +169,24 @@ processAction: ;all action is performing by pressing forward and pressing the ac
 	bsr getTileAfterPush ; whether it is '.' or ';'
 	bsr setMapTile
 .not_crateh
+	cmp.b #'t', D0 ; pickaxe
+	bne .dig
+	move.b #'.', D0
+	bsr setMapTile
+	move.w #PS_PICKAXE, player_state
+	move.w #3, pickaxe_health
+	bra .end
+.dig
+	cmp.b #'#', D0
+	bne .end
+	cmp.w #PS_PICKAXE, player_state
+	bne .end
+	move.b #'.', D0
+	bsr setMapTile
+	sub.w #1, pickaxe_health
+	cmp.w #0, pickaxe_health
+	bge .end
+	move.w #PS_BARE_HANDS, player_state
 .end
 	rts
 
@@ -489,7 +507,7 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	beq .wall
 	cmp.b #'^', d0
 	beq .death_spike
-	cmp.b #'v', d0
+	cmp.b #'t', d0
 	beq .tv_set
 
 	cmp.b #'+', d0
@@ -865,7 +883,7 @@ crateh:
 example_map:
 	dc.b '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
     dc.b '%...............+.....#........%'
-    dc.b '%...............#.#.###.#.#####%'
+    dc.b '%.t.............#.#.###.#.#####%'
     dc.b '%>.>.>.>.########.#.....#......%'
     dc.b '%.^.^.^.^#......##############.%'
     dc.b '%........#.E..&.#............#.%'
@@ -898,7 +916,8 @@ example_map:
    
 	
     
-player_position dc.w $1C00,$80,$1600
+;player_position dc.w $1C00,$80,$1600
+player_position dc.w $100, $80, $100
 player_theta	dc.b $00
 player_dirvec	dc.w 1, 0, 0
 
@@ -914,6 +933,7 @@ bare_handed_msg dc.b 'Bare-handed.', 0
 magic_counter dc.w $0000
 
 player_state dc.w $00
+pickaxe_health dc.w $00
 
 PS_BARE_HANDS EQU $00
 PS_PICKAXE EQU $01
