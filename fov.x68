@@ -57,7 +57,8 @@ castFovRay: ;args: a1 - viewdir vector
 	move.l A2, -(SP)
 	clr.l d1
 	clr.l d2
-	move.l #(FOV_DISTANCE-1), D7
+	move.l fov_distance, D7
+	sub.l #1, d7
 .loop:
 	;add viewdir vec pos to player pos
 	move.w player_position, D1
@@ -695,9 +696,10 @@ viewdir_63
         dc.b 0, 7
         dc.b 0, 8
 	
-FOV_DISTANCE EQU 8
+fov_distance dc.l 8
 NUM_FOV_RAYS EQU 25
 VIEWDIR_BITS EQU 6
+
 
 
 

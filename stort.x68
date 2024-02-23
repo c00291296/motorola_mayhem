@@ -46,7 +46,25 @@ processGameInput:
 	MOVE.B ACTION_BUTTON, D1
 	bsr areKeysPressed
 	move.b D1, IS_ACTION_PRESSED
+	;check for + or -
+	move.b #'O', D1
+	lsl.l #8, D1
+	move.b #'P', D1
+	bsr areKeysPressed
+	cmp.l #8, fov_distance
+	bge .minus
+	cmp.b #$FF, D1
+	bne .minus
+	add.l #1, fov_distance
+.minus
+	cmp.l #3, fov_distance
+	ble .dirmove
+	lsr.l #8, D1
+	cmp.b #$FF, D1
+	bne .dirmove
+	sub.l #1, fov_distance
 	;CHECK FOR DIRECTIONAL MOVEMENT
+.dirmove
 	move.b #'W', D1
 	LSL.l #8, D1
 	move.b #'S', D1
