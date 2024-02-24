@@ -23,16 +23,6 @@ BIGLOOP:
 	lea example_map, A1
 	bsr drawMap
 	
-	
-	;let's try and draw some 3d model
-	lea floor_tile, a0
-	lea $8000, a1
-	LEA EXAMPLE_POINT_OFFSET, A2
-	;ADD.W #1, 2(A2)
-	bsr projectAllModelVertices
-	lea floor_tile, a0
-	lea $8000, a1
-	bsr drawAllTriangles
 	bsr repaintScreen
 	bra BIGLOOP
 		
@@ -168,6 +158,8 @@ render2DWireframeTriangle: ;args: A0, A1, A2 - p1, p2, p3
 
 projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points, A2 - OFFSET
 	move.l a1, -(SP)
+	move.w player_position+4, -(SP)
+	sub.w #$180, player_position+4
 	clr.l D7
 	move.b 0(A0), D7 ; vertex number
 	sub.b #1, D7
@@ -184,6 +176,7 @@ projectAllModelVertices: ;args: A0 - model address, A1 - where to write the poin
 	add.l #4, A1
 	add.l #6, A0
 	DBRA D7, .loop
+	move.w (SP)+, player_position+4
 	move.l (SP)+, A1
 	rts
 
@@ -257,9 +250,10 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	move.l A1, -(SP)
 
 	move.B #$FF, D0
+	lsr.b #(8-MAP_Z_BITSHIFT), D0
+	and.b D0, D2
 	lsl.b #MAP_Z_BITSHIFT, D2
-	;lsr.b #(8-MAP_Z_BITSHIFT), D0
-	;and.b D0, D1
+	and.b D0, D1
 	add.b D2, D1
 	and.l #$000000FF, D1
 	add.l D1, A1
@@ -273,7 +267,10 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 drawMap: ;args: A1 - the map
 	;init
 	clr.l D1
-	clr.l D2
+	clr.l D2
+	move.w player_position+4, D2
+	add.w #$800, D2
+	asr.w #8, d2
 	
 .loop
 	;if z < =player.z, goto end (stupid FOV for the time being)
@@ -310,11 +307,12 @@ drawMap: ;args: A1 - the map
 	cmp.b #(MAP_SIDE-1), D1
 	
 	ble .loop
-	
+
+	
 	move.b #0, D1 ; x goes to 0 again
-	add.b #1, D2 ; z increases
-	cmp.b #(MAP_SIDE), D2 ; are we on last row?
-	bge .end ; if we finished the last row we end
+	sub.b #1, D2 ; z decreases
+	cmp.b D7, D2 ; are we on last row?
+	ble .end ; if we finished the last row we end
 	
 	;goto loop
 	bra .loop
@@ -357,7 +355,8 @@ floor_tile:
 example_map:
 	dc.b '####'
 	dc.b '....'
-	dc.b '....'
+	dc.b '....'
+
 	dc.b '....'
 	
     
@@ -374,6 +373,7 @@ MAP_SIDE EQU 4
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
