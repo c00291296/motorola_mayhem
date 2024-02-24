@@ -24,6 +24,12 @@ BIGLOOP:
 	bne .dont_speedup
 	add.w #1, ship_speed
 .dont_speedup
+	;stay positive :D
+	cmp.w #$0, player_position+4
+	bgt .dont_advance
+	bsr increaseLevel
+	move.w #0, player_position+4
+.dont_advance
 	;let's try drawing a 2d triangle
 	lea example_triangle, A0
 	lea example_triangle+4, A1
@@ -53,7 +59,29 @@ BIGLOOP:
 	
 ship_position: dc.w 0, 96, 0
 ship_speed: dc.w 1
-		
+level_number dc.w 1
+
+increaseLevel:
+	bsr clearScreen
+	add.w #1, level_number
+	move.l #$00FFFFFF, D1
+	bsr setPenColor
+	lea newlevel_msg, A1
+	move.b #14, D0
+	trap #15
+	clr.l d1
+	move.w level_number, d1
+	move.b #3, d0
+	trap #15
+	bsr repaintScreen
+.chk_spc
+	move.b #' ', D1
+	bsr areKeysPressed
+	cmp.b #$FF, D1
+	bne .chk_spc
+	rts
+	
+newlevel_msg: dc.b 'Congratulations! You reached level ', 0
 	
 SIMHALT             ; halt simulator
 * Put variables and constants here
