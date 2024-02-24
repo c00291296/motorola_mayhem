@@ -14,6 +14,16 @@ PLAYER_SPEED EQU 20
 BIGLOOP:
 	bsr clearScreen
 	bsr processGameInput
+	;update stuff
+	move.w ship_speed, d0
+	add.w d0, player_position+4
+	add.w #1, time_counter
+	move.w time_counter, d0
+	and.w #$0FFF, d0
+	cmp.w #$F00, d0
+	bne .dont_speedup
+	add.w #1, ship_speed
+.dont_speedup
 	;let's try drawing a 2d triangle
 	lea example_triangle, A0
 	lea example_triangle+4, A1
@@ -25,7 +35,6 @@ BIGLOOP:
 	
 	; draw player
 	move.w player_position, ship_position
-	move.w #(-96), ship_position+2
 	move.w player_position+4, ship_position+4
 	move.l #$0010AAAA, D1
 	bsr setPenColor
@@ -42,11 +51,13 @@ BIGLOOP:
 	bsr repaintScreen
 	bra BIGLOOP
 	
-ship_position: dc.w 0, 0, 0
+ship_position: dc.w 0, 96, 0
+ship_speed: dc.w 1
 		
 	
 SIMHALT             ; halt simulator
 * Put variables and constants here
+time_counter dc.w 0
 processGameInput:
 	move.b #'W', D1
 	LSL.l #8, D1
@@ -68,12 +79,12 @@ end_pgi:
 	lsr.l #8, d1
 	move.b d1, d0
 	and #3, d0
-	sub.w d0, player_position+4
+	sub.w d0, ship_position+2
 	
 	lsr.l #8, d1
 	move.b d1, d0
 	and #3, d0
-	add.w d0, player_position+4
+	add.w d0, ship_position+2
 	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
