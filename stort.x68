@@ -23,8 +23,26 @@ BIGLOOP:
 	lea example_map, A1
 	bsr drawMap
 	
+	; draw player
+	move.w player_position, ship_position
+	move.w #(-96), ship_position+2
+	move.w player_position+4, ship_position+4
+	move.l #$0010AAAA, D1
+	bsr setPenColor
+	lea spaceship_model, A0
+	lea $10000, A1
+	lea ship_position, a2
+	bsr projectAllModelVertices
+	lea spaceship_model, A0
+	lea $10000, A1
+	lea ship_position, a2
+
+	bsr drawAllTriangles
+	
 	bsr repaintScreen
 	bra BIGLOOP
+	
+ship_position: dc.w 0, 0, 0
 		
 	
 SIMHALT             ; halt simulator
@@ -81,6 +99,12 @@ repaintScreen:
     move.l #94, D0
     trap #15
     rts
+    
+setPenColor: ;args: D1.L - #$00BBGGRR
+	move.b #80, D0
+	trap #15
+	rts
+
     
 clearScreen:
     move.l #11, D0
@@ -159,7 +183,7 @@ render2DWireframeTriangle: ;args: A0, A1, A2 - p1, p2, p3
 projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points, A2 - OFFSET
 	move.l a1, -(SP)
 	move.w player_position+4, -(SP)
-	sub.w #$180, player_position+4
+	sub.w #$280, player_position+4
 	clr.l D7
 	move.b 0(A0), D7 ; vertex number
 	sub.b #1, D7
@@ -271,15 +295,20 @@ drawMap: ;args: A1 - the map
 	move.w player_position+4, D2
 	add.w #$800, D2
 	asr.w #8, d2
+	move.l D1, -(SP)
+	move.l #$00404020, D1
+	bsr setPenColor
+	move.l (SP)+, D1
+	move.b #64, .blue_brightness
 	
 .loop
-	;if z < =player.z, goto end (stupid FOV for the time being)
+	;if z < player.z, goto end (stupid FOV for the time being)
 	lea player_position, A6
 	move.w 4(A6), D7
 	asr.w #8, D7 ;round player z to an integer
 	add.b #1, D7
 	cmp.b D2, D7 ;if the cell z is less or equal to players z
-	bge .continue
+	bgt .continue
 	;retrieve tile
 	bsr getMapTIle 
 	;draw model
@@ -311,14 +340,27 @@ drawMap: ;args: A1 - the map
 	
 	move.b #0, D1 ; x goes to 0 again
 	sub.b #1, D2 ; z decreases
+	;make color brighter
+	move.l D1, -(SP)
+	move.b #0, D1 ;zero
+	lsl.l #8, D1
+	add.b #24, .blue_brightness
+	move.b .blue_brightness, D1 ;blue
+	lsl.l #8, D1
+	move.b .blue_brightness, D1 ;green
+	lsl.l #8, D1
+	move.b #$20, D1 ;red
+	bsr setPenColor
+	move.l (SP)+, D1
 	cmp.b D7, D2 ; are we on last row?
-	ble .end ; if we finished the last row we end
+	blt .end ; if we finished the last row we end
 	
 	;goto loop
 	bra .loop
 .end
 	rts
-    
+.blue_brightness dc.b 64
+AAA_SHIT: dc.b 0
     
 ; constants
 example_triangle:
@@ -351,6 +393,19 @@ floor_tile:
 	dc.w -127, 0, -127
 	dc.b 0, 1, 2 ; triangles
 	dc.b 2, 3, 0
+
+spaceship_model:
+	dc.b 5
+	dc.b 4
+	dc.w -128, 128, -128
+	dc.w 128, 128, -128
+	dc.w 0, 160, -128
+	dc.w 0, 96, -128
+	dc.w 0, 128, 128 ;pointy end
+	dc.b 0, 2, 4
+	dc.b 2, 1, 4
+	dc.b 1, 3, 4
+	dc.b 3, 0, 4
 
 example_map:
 	dc.b '####'
