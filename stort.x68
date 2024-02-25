@@ -9,6 +9,10 @@ START:                  ; first instruction of program
 PLAYER_SPEED EQU 20
 
 * Put program code here
+	move.w #1, ship_speed
+	move.w #$180, player_position
+	move.w #0, player_position+4
+	move.w #1, level_number
 
 	bsr enableDoubleBuffering
 BIGLOOP:
@@ -54,6 +58,8 @@ BIGLOOP:
 
 	bsr drawAllTriangles
 	
+	bsr processCollisions
+	
 	bsr repaintScreen
 	bra BIGLOOP
 	
@@ -81,6 +87,55 @@ increaseLevel:
 	bne .chk_spc
 	rts
 	
+processCollisions:
+	clr.l D1
+	clr.l D2
+	move.w ship_position, D1
+	move.w ship_position+4, D2
+	add.w #0,d1
+	add.w #256, D2
+	asr.w #8, D1
+	asr.w #8, D2
+	lea example_map, A1
+	bsr getMapTile
+	bsr checkTileCollision
+	
+	move.w ship_position, D1
+	move.w ship_position+4, D2
+	add.w #256,d1
+	add.w #256, D2
+	asr.w #8, D1
+	asr.w #8, D2
+	lea example_map, A1
+	bsr getMapTile
+	bsr checkTileCollision
+
+	
+	rts
+	
+checkTileCollision:
+	cmp.b #'#', D0
+	beq killPlayer
+.end
+	rts
+
+killPlayer:
+	bsr clearScreen
+	add.w #1, level_number
+	move.l #$00FFFFFF, D1
+	bsr setPenColor
+	lea dead_msg, A1
+	move.b #14, D0
+	trap #15
+	bsr repaintScreen
+.chk_spc
+	move.b #' ', D1
+	bsr areKeysPressed
+	cmp.b #$FF, D1
+	bne .chk_spc
+	bra START
+	
+dead_msg: dc.b 'Congratulations! You crashed and died!', 0
 newlevel_msg: dc.b 'Congratulations! You reached level ', 0
 	
 SIMHALT             ; halt simulator
@@ -330,7 +385,8 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 drawMap: ;args: A1 - the map
 	;init
 	clr.l D1
-	clr.l D2
+	clr.l D2
+
 	move.w player_position+4, D2
 	add.w #$800, D2
 	asr.w #8, d2
@@ -344,10 +400,11 @@ drawMap: ;args: A1 - the map
 	;if z < player.z, goto end (stupid FOV for the time being)
 	lea player_position, A6
 	move.w 4(A6), D7
+	sub.w 256, d7
 	asr.w #8, D7 ;round player z to an integer
-	add.b #1, D7
+	;sub.b #1, D7
 	cmp.b D2, D7 ;if the cell z is less or equal to players z
-	bgt .continue
+	bge .continue
 	;retrieve tile
 	bsr getMapTIle 
 	;draw model
@@ -447,10 +504,9 @@ spaceship_model:
 	dc.b 3, 0, 4
 
 example_map:
-	dc.b '####'
+	dc.b '#..#'
 	dc.b '....'
 	dc.b '....'
-
 	dc.b '....'
 	
     
@@ -467,6 +523,7 @@ MAP_SIDE EQU 4
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
