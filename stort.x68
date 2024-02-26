@@ -13,6 +13,7 @@ PLAYER_SPEED EQU 20
 	move.w #$180, player_position
 	move.w #0, player_position+4
 	move.w #1, level_number
+	move.l #0, points_score
 
 	bsr enableDoubleBuffering
 BIGLOOP:
@@ -60,12 +61,15 @@ BIGLOOP:
 	
 	bsr processCollisions
 	
+	bsr displayPoints
+	
 	bsr repaintScreen
 	bra BIGLOOP
 	
 ship_position: dc.w 0, -32, 0
 ship_speed: dc.w 3
 level_number dc.w 1
+points_score dc.l 0
 
 increaseLevel:
 	bsr clearScreen
@@ -86,6 +90,13 @@ increaseLevel:
 	cmp.b #$FF, D1
 	bne .chk_spc
 	rts
+	
+displayPoints:
+    move.l points_score, D1
+    bsr putInt
+    lea zeros_msg, a1
+    bsr putStr
+    rts
 	
 processCollisions:
 
@@ -121,8 +132,20 @@ checkTileCollision:
 	bne .end ; it's a powerup!
 	move.b #'.', D0
 	bsr setMapTile
+	add.l #5, points_score
 .end
 	rts
+
+putInt: ; args: D1 - integer
+	move.b #3, d0
+	trap #15
+	rts
+	
+putStr: ;ARGS: a1 - string
+	move.b #14, D0
+	trap #15
+	rts
+
 
 killPlayer:
 	bsr clearScreen
@@ -140,6 +163,7 @@ killPlayer:
 	bne .chk_spc
 	bra START
 	
+zeros_msg: dc.b '00', 0
 dead_msg: dc.b 'Congratulations! You crashed and died!', 0
 newlevel_msg: dc.b 'Congratulations! You reached level ', 0
 	
