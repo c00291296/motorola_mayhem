@@ -63,7 +63,7 @@ BIGLOOP:
 	bsr repaintScreen
 	bra BIGLOOP
 	
-ship_position: dc.w 0, 96, 0
+ship_position: dc.w 0, -32, 0
 ship_speed: dc.w 1
 level_number dc.w 1
 
@@ -87,7 +87,8 @@ increaseLevel:
 	bne .chk_spc
 	rts
 	
-processCollisions:
+processCollisions:
+
 	clr.l D1
 	clr.l D2
 	move.w ship_position, D1
@@ -152,22 +153,15 @@ processGameInput:
 	bsr areKeysPressed
 	cmp.b #$FF, D1
 	BNE end_pgi
-	add.w #3, player_position
+	move.w ship_speed, d0
+	add.w d0, player_position
 end_pgi:
 	lsr.l #8, d1
-	move.b d1, d0
-	and #3, d0
+	cmp.b #$FF, D1
+	bne .end
+	move.w ship_speed, d0
 	sub.w d0, player_position
-	
-	lsr.l #8, d1
-	move.b d1, d0
-	and #3, d0
-	sub.w d0, ship_position+2
-	
-	lsr.l #8, d1
-	move.b d1, d0
-	and #3, d0
-	add.w d0, ship_position+2
+.end
 	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
@@ -502,6 +496,10 @@ spaceship_model:
 	dc.b 2, 1, 4
 	dc.b 1, 3, 4
 	dc.b 3, 0, 4
+	
+stickman_model:
+    dc.b 9 ; nine points
+    dc.b 7 ; nine "triangles"
 
 example_map:
 	dc.b '#..#'
@@ -523,6 +521,7 @@ MAP_SIDE EQU 4
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
