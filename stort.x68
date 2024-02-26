@@ -154,12 +154,14 @@ processGameInput:
 	cmp.b #$FF, D1
 	BNE end_pgi
 	move.w ship_speed, d0
+	asl.w #1, d0
 	add.w d0, player_position
 end_pgi:
 	lsr.l #8, d1
 	cmp.b #$FF, D1
 	bne .end
 	move.w ship_speed, d0
+	asl.w #1, d0
 	sub.w d0, player_position
 .end
 	rts
@@ -502,10 +504,14 @@ stickman_model:
     dc.b 7 ; nine "triangles"
 
 example_map:
-	dc.b '#..#'
-	dc.b '....'
-	dc.b '....'
-	dc.b '....'
+	dc.b '#...####'
+	dc.b '.......#'
+	dc.b '.......#'
+	dc.b '.......#'
+	dc.b '####...#'
+	dc.b '.......#'
+	dc.b '.......#'
+	dc.b '.......#'
 	
     
 player_position dc.w 0,$80,0
@@ -516,8 +522,8 @@ SCREEN_WIDTH EQU 640>>7
 SCREEN_HEIGHT EQU 480>>5
 SCREEN_VCENTER EQU (SCREEN_HEIGHT<<5)/2
 SCREEN_HCENTER EQU (SCREEN_WIDTH<<7)/2
-MAP_Z_BITSHIFT EQU 2
-MAP_SIDE EQU 4
+MAP_Z_BITSHIFT EQU 3
+MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
