@@ -9,7 +9,7 @@ START:                  ; first instruction of program
 PLAYER_SPEED EQU 20
 
 * Put program code here
-	move.w #1, ship_speed
+	move.w #3, ship_speed
 	move.w #$180, player_position
 	move.w #0, player_position+4
 	move.w #1, level_number
@@ -64,7 +64,7 @@ BIGLOOP:
 	bra BIGLOOP
 	
 ship_position: dc.w 0, -32, 0
-ship_speed: dc.w 1
+ship_speed: dc.w 3
 level_number dc.w 1
 
 increaseLevel:
@@ -117,6 +117,10 @@ processCollisions:
 checkTileCollision:
 	cmp.b #'#', D0
 	beq killPlayer
+	cmp.b #'@', D0
+	bne .end ; it's a powerup!
+	move.b #'.', D0
+	bsr setMapTile
 .end
 	rts
 
@@ -154,14 +158,14 @@ processGameInput:
 	cmp.b #$FF, D1
 	BNE end_pgi
 	move.w ship_speed, d0
-	asl.w #1, d0
+	asl.w #2, d0
 	add.w d0, player_position
 end_pgi:
 	lsr.l #8, d1
 	cmp.b #$FF, D1
 	bne .end
 	move.w ship_speed, d0
-	asl.w #1, d0
+	asl.w #2, d0
 	sub.w d0, player_position
 .end
 	rts
@@ -341,9 +345,14 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	cmp.b #'#', d0
 	beq .wall
+	cmp.b #'@', D0
+	beq .powerup
 .floor
 	lea floor_tile, a0
 	bra .end
+.powerup
+    lea powerup_model, a0
+    bra .end
 .wall
 	lea example_model, a0
 .end
@@ -372,6 +381,26 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	and.l #$000000FF, D1
 	add.l D1, A1
 	move.b (A1), D0
+	
+	move.l (SP)+, A1
+	move.l (SP)+, D2
+	move.l (SP)+, D1
+	rts
+
+setMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; modifies: D0.b - map cell char
+	move.l d1, -(SP)
+	move.l d2, -(SP)
+	move.l A1, -(SP)
+
+	move.B #$FF, D0
+	lsr.b #(8-MAP_Z_BITSHIFT), D0
+	and.b D0, D2
+	lsl.b #MAP_Z_BITSHIFT, D2
+	and.b D0, D1
+	add.b D2, D1
+	and.l #$000000FF, D1
+	add.l D1, A1
+	move.b D0, (A1)
 	
 	move.l (SP)+, A1
 	move.l (SP)+, D2
@@ -499,15 +528,21 @@ spaceship_model:
 	dc.b 1, 3, 4
 	dc.b 3, 0, 4
 	
-stickman_model:
-    dc.b 9 ; nine points
-    dc.b 7 ; nine "triangles"
+powerup_model:
+    dc.b 4 ; four points
+    dc.b 2 ; 2 "triangles"
+    dc.w 0, 0, 0
+    dc.w 0, 64, 0
+    dc.w 0, 96, 0
+    dc.w 32, 80, 0
+    dc.b 1,2,3
+    dc.b 0, 1, 1
 
 example_map:
 	dc.b '#...####'
 	dc.b '.......#'
 	dc.b '.......#'
-	dc.b '.......#'
+	dc.b '.....@.#'
 	dc.b '####...#'
 	dc.b '.......#'
 	dc.b '.......#'
