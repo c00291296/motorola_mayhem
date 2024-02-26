@@ -49,11 +49,11 @@ BIGLOOP:
 	move.w player_position+4, ship_position+4
 	move.l #$0010AAAA, D1
 	bsr setPenColor
-	lea spaceship_model, A0
+	bsr getShipModel
 	lea $10000, A1
 	lea ship_position, a2
 	bsr projectAllModelVertices
-	lea spaceship_model, A0
+	bsr getShipModel
 	lea $10000, A1
 	lea ship_position, a2
 
@@ -70,6 +70,28 @@ ship_position: dc.w 0, -32, 0
 ship_speed: dc.w 3
 level_number dc.w 1
 points_score dc.l 0
+upgrade_stage: dc.w 0
+upgrade_table: dc.l paperplane_model, spaceship_model
+maxUpgrade EQU 1
+
+getShipModel: ; returns a0 - model address
+    move.l #upgrade_table, A0
+    clr.l d0
+    move.w upgrade_stage, d0
+    asl.l #2, D0 ; each address is 4 bytes
+    add.l upgrade_stage, A0
+    move.l (A0), A0
+    rts
+
+getUpgradeModel:
+    move.l #upgrade_table, A0
+    clr.l d0
+    move.w upgrade_stage, d0
+    add.l #1, D0
+    asl.l #2, D0 ; each address is 4 bytes
+    add.l upgrade_stage, A0
+    move.l (A0), A0
+    rts
 
 increaseLevel:
 	bsr clearScreen
@@ -375,7 +397,7 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	lea floor_tile, a0
 	bra .end
 .powerup
-    lea powerup_model, a0
+    bsr getUpgradeModel
     bra .end
 .wall
 	lea example_model, a0
