@@ -59,6 +59,8 @@ BIGLOOP:
 	bsr drawAllTriangles
 	
 	bsr processCollisions
+	lea example_map, A1
+	bsr maybeInsertPowerup
 	
 	bsr displayPoints
 .end_chlg
@@ -198,14 +200,11 @@ processCollisions:
 checkTileCollision:
 	cmp.b #'#', D0
 	beq killPlayer
-	cmp.b #'^', D0
-	beq killPlayer
 	cmp.b #'@', D0
 	bne .end ; it's a powerup!
 	move.b #'.', D0
 	bsr setMapTile
 	add.l #5, points_score
-	add.w #1, upgrade_stage
 .end
 	rts
 
@@ -537,7 +536,7 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	lea floor_tile, a0
 	bra .end
 .powerup
-    bsr getUpgradeModel
+    lea powerup_model, a0
     bra .end
 .wall
 	lea example_model, a0
@@ -574,11 +573,40 @@ getMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; returns: D0.b - map cell 
 	move.l (SP)+, D1
 	rts
 
+insertPowerup: ; inserts a flag you can pick up for xtra chlng&pts
+	move.b D0, -(SP)
+	move.b D1, -(SP)
+	move.b D2, -(SP)
+	move.b #2, D1
+	move.b #3, D2
+	move.b #'@', D0
+	bsr setMapTile
+	move.b (SP)+, D2
+	move.b (SP)+, D1
+	move.b (SP)+, D0
+	rts
+
+maybeInsertPowerup: ; inserts powerup if theres none and player is in front
+	move.b #2, D1
+	move.b #3, D2
+	bsr getMapTile
+	cmp.b #'@', D0
+	beq .end ; no need to insert, powerup already here
+	move.w player_position+4, D1
+	asr.w #8, D1
+	and.b #7, D1
+	cmp.b #3, D1
+	blt .end
+	bgt insertPowerup
+.end
+	rts
+
 setMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; modifies: D0.b - map cell char
 	move.l d1, -(SP)
 	move.l d2, -(SP)
 	move.l A1, -(SP)
 
+	move.b D0, -(SP)
 	move.B #$FF, D0
 	lsr.b #(8-MAP_Z_BITSHIFT), D0
 	and.b D0, D2
@@ -587,7 +615,7 @@ setMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; modifies: D0.b - map cell
 	add.b D2, D1
 	and.l #$000000FF, D1
 	add.l D1, A1
-	move.b D0, (A1)
+	move.b (SP)+, (A1)
 	
 	move.l (SP)+, A1
 	move.l (SP)+, D2
@@ -720,12 +748,21 @@ paperplane_model:
     
     dc.b $ff ;  word padding garbage
 	
+powerup_model:
+    dc.b 4 ; four points
+    dc.b 2 ; 2 "triangles"
+    dc.w 0, 0, 0
+    dc.w 0, 64, 0
+    dc.w 0, 96, 0
+    dc.w 32, 80, 0
+    dc.b 1,2,3
+    dc.b 0, 1, 1
 
 example_map:
 	dc.b '#...####'
 	dc.b '#......#'
 	dc.b '#......#'
-	dc.b '#......#'
+	dc.b '#.@....#'
 	dc.b '####...#'
 	dc.b '#......#'
 	dc.b '#......#'
@@ -744,6 +781,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
