@@ -542,15 +542,29 @@ floor_tile:
 spaceship_model:
 	dc.b 5
 	dc.b 4
-	dc.w -128, 128, -128
-	dc.w 128, 128, -128
-	dc.w 0, 160, -128
-	dc.w 0, 96, -128
+	dc.w -136, 128, -128
+	dc.w 120, 128, -128
+	dc.w -8, 160, -128
+	dc.w -8, 96, -128
 	dc.w 0, 128, 128 ;pointy end
 	dc.b 0, 2, 4
 	dc.b 2, 1, 4
 	dc.b 1, 3, 4
 	dc.b 3, 0, 4
+
+paperplane_model:
+    dc.b 5
+    dc.b 3
+    dc.w 0, 96, 128
+    dc.w -8, 96, -128
+    dc.w -128, 128, -96
+    dc.w 128, 128, -96
+    dc.w -8, 80, -128 
+    dc.b 0, 1, 2
+    dc.b 0, 1, 3
+    dc.b 0, 1, 4
+    
+    dc.b $ff ;  word padding garbage
 	
 powerup_model:
     dc.b 4 ; four points
