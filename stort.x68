@@ -28,6 +28,9 @@ BIGLOOP:
 	cmp.w #$F00, d0
 	bne .dont_speedup
 	add.w #1, ship_speed
+	clr.l d0
+	move.w ship_speed, d0
+	add.l d0, points_score
 .dont_speedup
 	;stay positive :D
 	cmp.w #$0, player_position+4
@@ -75,7 +78,7 @@ upgrade_table: dc.l paperplane_model, spaceship_model
 maxUpgrade EQU 1
 
 getShipModel: ; returns a0 - model address
-    move.l #upgrade_table, A0
+    lea upgrade_table, A0
     clr.l d0
     move.w upgrade_stage, d0
     asl.l #2, D0 ; each address is 4 bytes
