@@ -75,7 +75,7 @@ ship_speed: dc.w 3
 level_number dc.w 1
 points_score dc.l 0
 upgrade_stage: dc.w 0
-upgrade_table: dc.l paperplane_model, spaceship_model
+upgrade_table: dc.l car_model, car_gun_model
 maxUpgrade EQU 1
 
 getShipModel: ; returns a0 - model address
@@ -88,14 +88,15 @@ getShipModel: ; returns a0 - model address
     rts
 
 getUpgradeModel:
-    move.l #upgrade_table, A0
-    clr.l d0
-    move.w upgrade_stage, d0
-    add.l #1, D0
-    asl.l #2, D0 ; each address is 4 bytes
-    add.l D0, A0
-    move.l (A0), A0
-    rts
+	move.l #upgrade_table, A0
+	clr.l d0
+	move.w upgrade_stage, d0
+	add.l #1, D0
+	asl.l #2, D0 ; each address is 4 bytes
+	add.l D0, A0
+	move.l (A0), A0
+.end
+	rts
 
 increaseLevel:
 	bsr clearScreen
@@ -594,6 +595,62 @@ paperplane_model:
     dc.b 0, 1, 4
     
     dc.b $ff ;  word padding garbage
+    
+car_model:
+	dc.b 8
+	dc.b 6
+	;lower points
+	dc.w -128, 0, 128
+	dc.w 128, 0, 128
+	dc.w 128, 0, -128
+	dc.w -128, 0, -128
+	;upper points
+	dc.w -96, 96, 96
+	dc.w 96, 96, 96
+	dc.w 96, 96, -96
+	dc.w -96, 96, -96
+	;triangles
+	dc.b 4, 5, 6
+	dc.b 6, 7, 4
+	; back thingies
+	dc.b 3, 6, 7
+	dc.b 2, 6, 7
+	; front things
+	dc.b 0, 4, 5
+	dc.b 1, 4, 5
+
+car_gun_model:
+	dc.b 12
+	dc.b 9
+	;lower points
+	dc.w -128, 0, 128
+	dc.w 128, 0, 128
+	dc.w 128, 0, -128
+	dc.w -128, 0, -128
+	;upper points
+	dc.w -96, 96, 96
+	dc.w 96, 96, 96
+	dc.w 96, 96, -96
+	dc.w -96, 96, -96
+	;the gun
+	dc.w 0, 96, 0
+	dc.w -8, 96, 144
+	dc.w 8, 96, 144
+	dc.w 0, 112, 144
+	;triangles
+	dc.b 4, 5, 6
+	dc.b 6, 7, 4
+	; back thingies
+	dc.b 3, 6, 7
+	dc.b 2, 6, 7
+	; front things
+	dc.b 0, 4, 5
+	dc.b 1, 4, 5
+	;gun triangles
+	dc.b 8, 9, 10
+	dc.b 8, 10, 11
+	dc.b 8, 11, 9
+
 	
 powerup_model:
     dc.b 4 ; four points
