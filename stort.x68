@@ -51,6 +51,7 @@ BIGLOOP:
 	; draw player
 	move.w player_position, ship_position
 	move.w player_position+4, ship_position+4
+	add.w #256, ship_position+4
 	move.l #$0010AAAA, D1
 	bsr setPenColor
 	bsr getShipModel
@@ -62,6 +63,7 @@ BIGLOOP:
 	lea ship_position, a2
 
 	bsr drawAllTriangles
+	sub.w #256, ship_position+4
 	
 	bsr processCollisions
 	
@@ -70,7 +72,7 @@ BIGLOOP:
 	bsr repaintScreen
 	bra BIGLOOP
 	
-ship_position: dc.w 0, -32, 0
+ship_position: dc.w 0, 0, 0
 ship_speed: dc.w 3
 level_number dc.w 1
 points_score dc.l 0
@@ -329,7 +331,7 @@ render2DWireframeTriangle: ;args: A0, A1, A2 - p1, p2, p3
 projectAllModelVertices: ;args: A0 - model address, A1 - where to write the points, A2 - OFFSET
 	move.l a1, -(SP)
 	move.w player_position+4, -(SP)
-	sub.w #$280, player_position+4
+	sub.w #$256, player_position+4
 	clr.l D7
 	move.b 0(A0), D7 ; vertex number
 	sub.b #1, D7
@@ -673,7 +675,7 @@ example_map:
 	dc.b '.......#'
 	
     
-player_position dc.w 0,$80,0
+player_position dc.w 0,$100,0
 
 EXAMPLE_POINT_OFFSET DC.W 0, 0, 3<<8
     
