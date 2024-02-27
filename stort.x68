@@ -14,6 +14,7 @@ PLAYER_SPEED EQU 20
 	move.w #0, player_position+4
 	move.w #1, level_number
 	move.l #0, points_score
+	move.w #0, upgrade_stage
 
 	bsr enableDoubleBuffering
 BIGLOOP:
@@ -82,7 +83,7 @@ getShipModel: ; returns a0 - model address
     clr.l d0
     move.w upgrade_stage, d0
     asl.l #2, D0 ; each address is 4 bytes
-    add.l upgrade_stage, A0
+    add.l D0, A0
     move.l (A0), A0
     rts
 
@@ -92,7 +93,7 @@ getUpgradeModel:
     move.w upgrade_stage, d0
     add.l #1, D0
     asl.l #2, D0 ; each address is 4 bytes
-    add.l upgrade_stage, A0
+    add.l D0, A0
     move.l (A0), A0
     rts
 
@@ -158,6 +159,7 @@ checkTileCollision:
 	move.b #'.', D0
 	bsr setMapTile
 	add.l #5, points_score
+	add.w #1, upgrade_stage
 .end
 	rts
 
