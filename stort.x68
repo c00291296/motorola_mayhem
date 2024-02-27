@@ -553,13 +553,15 @@ pyramid_triangles:
     
 floor_tile:
 	dc.b 4 ;v
-	dc.b 2 ;t
+	dc.b 4 ;t
 	dc.w -127, 0, 127 ; vertices
 	dc.w 127, 0, 127
 	dc.w 127, 0, -127
 	dc.w -127, 0, -127
-	dc.b 0, 1, 2 ; triangles
-	dc.b 2, 3, 0
+	dc.b 0, 1, 1 ; triangles
+	dc.b 1, 2, 2
+	dc.b 2, 3, 3
+	dc.b 3, 0, 0
 
 spaceship_model:
 	dc.b 5
@@ -622,6 +624,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
