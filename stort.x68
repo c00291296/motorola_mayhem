@@ -491,6 +491,8 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	beq .wall
 	cmp.b #'@', D0
 	beq .powerup
+	cmp.b #'^', D0
+	beq .trap
 .floor
 	lea floor_tile, a0
 	bra .end
@@ -499,6 +501,10 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
     bra .end
 .wall
 	lea example_model, a0
+	bra .end
+.trap
+	lea pyramid2, a0
+	bra .end
 .end
 	rts
 	
@@ -649,6 +655,21 @@ pyramid_triangles:
     dc.b 2,4, 3
     dc.b 2, 4, 0
     
+pyramid2:
+	dc.b 5
+	dc.b 6
+	dc.w -128, 0, -128
+	dc.w -128, 0, 128
+	dc.w 128, 0, -128
+	dc.w 128, 0, 128
+	dc.w 0, $100, 0
+	dc.b 0, 1, 2
+	dc.b 2, 3, 1
+	dc.b 0, 4, 1
+	dc.b 1,4,3
+	dc.b 2,4, 3
+	dc.b 2, 4, 0
+    
 floor_tile:
 	dc.b 4 ;v
 	dc.b 4 ;t
@@ -774,7 +795,7 @@ example_map:
 	dc.b '.......#'
 	dc.b '.......#'
 	dc.b '.....@.#'
-	dc.b '####...#'
+	dc.b '####^^^#'
 	dc.b '.......#'
 	dc.b '.......#'
 	dc.b '.......#'
@@ -793,6 +814,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
