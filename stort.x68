@@ -265,6 +265,8 @@ processCollisions:
 checkTileCollision:
 	cmp.b #'#', D0
 	beq killPlayer
+	cmp.b #'^', D0
+	beq killPlayer
 	cmp.b #'@', D0
 	bne .end ; it's a powerup!
 	move.b #'.', D0
