@@ -70,7 +70,7 @@ BIGLOOP:
 	
 	bsr displayPoints
 	
-	;bsr processAllBullets
+	bsr processBulletCollision
 	bsr repaintScreen
 	bra BIGLOOP
 	
@@ -162,6 +162,31 @@ tryShoot:
     ;end original function
 .end
     rts
+    
+processBulletCollision:
+	clr.l D1
+	clr.l D2
+	move.w bullet_position, D1
+	add.w #128, D1
+	move.w bullet_position+4, D2
+	add.w #128, D2
+	add.w #0,d1
+	asr.w #8, D1
+	asr.w #8, D2
+	lea example_map, A1
+	bsr getMapTile
+	bsr bulletTileCollide
+	rts
+
+bulletTileCollide:
+	cmp.b #'^', D0
+	bne .end
+	move.b #'.', D0
+	bsr setMapTile
+	move.w #$0000, bullet_exists
+	add.l #5, points_score
+.end
+	rts
 
 getShipModel: ; returns a0 - model address
     lea upgrade_table, A0
