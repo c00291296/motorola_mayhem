@@ -6,7 +6,6 @@
 *-----------------------------------------------------------
     ORG    $1000
 START:                  ; first instruction of program
-PLAYER_SPEED EQU 20
 
 * Put program code here
 	move.w #3, ship_speed
@@ -63,12 +62,15 @@ BIGLOOP:
 	lea ship_position, a2
 
 	bsr drawAllTriangles
+	bsr drawBullet
+	bsr updateBullet
 	sub.w #256, ship_position+4
 	
 	bsr processCollisions
 	
 	bsr displayPoints
 	
+	;bsr processAllBullets
 	bsr repaintScreen
 	bra BIGLOOP
 	
@@ -77,8 +79,89 @@ ship_speed: dc.w 3
 level_number dc.w 1
 points_score dc.l 0
 upgrade_stage: dc.w 0
+bullet_exists: dc.w $0000 ; no bullet
+bullet_position: dc.w 0, 0, 0
+bullet_speed: dc.w 0
 upgrade_table: dc.l car_model, car_gun_model
 maxUpgrade EQU 1
+
+bulletNumber EQU 8
+bulletNoOffset EQU 3
+bulletNoBitmask EQU $7
+
+bullet_positions:
+    dcb.w 3*bulletNumber,$0000
+bullet_existances:
+    dcb.w bulletNumber,0
+next_bullet: dc.l 0
+
+processAllBullets:
+    move.w #(bulletNumber-1), D7
+.loop
+    move.l bullet_existances, a6
+    move.l bullet_positions, a5
+    move.w (a6), bullet_exists
+    move.w (a5), bullet_position
+    move.w 2(a5), bullet_position+2
+    move.w 4(a5), bullet_position+4
+    bsr drawBullet
+    bsr updateBullet
+    
+    move.w bullet_exists, (a6)
+    move.w bullet_position, (a5)
+    move.w bullet_position+2, 2(a5)
+    move.w bullet_position+4, 4(a5)
+    
+    add.l #6, A5
+    add.l #2, A6
+    
+
+    dbra d7, .loop
+.end
+    rts
+
+drawBullet:
+    cmp.w #$FFFF, bullet_exists
+    bne .end
+    move.l #$001010AA, D1 ; red
+	bsr setPenColor
+	lea bullet_model, A0
+	lea $10000, A1
+	lea bullet_position, a2
+	bsr projectAllModelVertices
+	lea bullet_model, a0
+	lea $10000, A1
+	lea bullet_position, a2
+	bsr drawAllTriangles
+.end
+    rts
+    
+updateBullet:
+    move.w bullet_speed, d0
+    add.w d0, bullet_position+4
+    move.w bullet_position+4, d0
+    sub.w player_position+4, d0
+    cmp.w #$500, d0
+    ble .end
+    ;disappear when too far
+    move.w #$0000, bullet_exists
+.end
+    rts
+
+tryShoot:
+    ;original_function
+    cmp.w #$FFFF, bullet_exists
+    beq .end
+    move.w #$FFFF, bullet_exists
+    move.w ship_position, bullet_position
+    move.w 0, bullet_position+2
+    move.w ship_position+4, bullet_position+4
+    move.w ship_speed, d0
+    asl.w #2, d0
+    move.w d0, bullet_speed ; 4x as fast as the player
+    ;end original function
+.end
+    rts
 
 getShipModel: ; returns a0 - model address
     lea upgrade_table, A0
@@ -203,7 +286,7 @@ time_counter dc.w 0
 processGameInput:
 	move.b #'W', D1
 	LSL.l #8, D1
-	move.b #'S', D1
+	move.b #' ', D1
 	LSL.l #8, D1
 	move.b #'A', D1
 	LSL.l #8, D1
@@ -217,12 +300,19 @@ processGameInput:
 end_pgi:
 	lsr.l #8, d1
 	cmp.b #$FF, D1
-	bne .end
+	bne .next
 	move.w ship_speed, d0
 	asl.w #2, d0
 	sub.w d0, player_position
+.next
+    lsr.l #8, D1
+    cmp.b #$FF, D1
+    bne .end
+    bsr tryShoot
+	
 .end
 	rts
+	
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
 	move.b #19, D0
@@ -637,7 +727,8 @@ car_gun_model:
 	;the gun
 	dc.w 0, 96, 0
 	dc.w -8, 96, 144
-	dc.w 8, 96, 144
+	dc.w 8, 96, 144
+
 	dc.w 0, 112, 144
 	;triangles
 	dc.b 4, 5, 6
@@ -652,6 +743,20 @@ car_gun_model:
 	dc.b 8, 9, 10
 	dc.b 8, 10, 11
 	dc.b 8, 11, 9
+
+    dc.b $ff ; word alignment garbage
+
+bullet_model
+    dc.b 3 ; 3 vertices
+    dc.b 1 ; 1 triangle
+    ;points
+    dc.w -8, 96, 0
+    dc.w 8, 96, 0
+    dc.w 0, 96, 16
+    ;trinagle
+    dc.b 0, 1, 2
+
+    dc.b $FF ; word alignment garbage
 
 	
 powerup_model:
@@ -688,6 +793,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
