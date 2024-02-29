@@ -62,8 +62,6 @@ BIGLOOP:
 	lea ship_position, a2
 
 	bsr drawAllTriangles
-	bsr drawBullet
-	bsr updateBullet
 	sub.w #256, ship_position+4
 	
 	bsr processCollisions
@@ -71,6 +69,7 @@ BIGLOOP:
 	bsr displayPoints
 	
 	bsr processBulletCollision
+.end_chlg
 	bsr repaintScreen
 	bra BIGLOOP
 	
@@ -180,13 +179,35 @@ processBulletCollision:
 
 bulletTileCollide:
 	cmp.b #'^', D0
-	bne .end
+	bne .wall
 	move.b #'.', D0
 	bsr setMapTile
 	move.w #$0000, bullet_exists
 	add.l #5, points_score
+.wall
+	cmp.b #'#', D0
+	bne .end
+	move.w #$0000, bullet_exists
 .end
 	rts
+
+copyRow: ;args: d2 - row
+	; init
+	clr.b d1
+	move.w #(MAP_SIDE-1), D7
+.loop
+	lea challenges, a1
+	move.b D2, -(SP)
+	move.b .challenge_num, d2
+	bsr getMapTile
+	lea example_map, a1
+	move.b (SP)+, D2
+	bsr setMapTile
+	add.b #1, D1
+	dbra d7,.loop
+	add.b #1, .challenge_num
+	rts
+.challenge_num dc.w $0000
 
 getShipModel: ; returns a0 - model address
     lea upgrade_table, A0
@@ -512,7 +533,7 @@ drawAllTriangles: ;args: A0 - model address A1 - projected points, A2 - MODEL OF
 	DBRA D7, .loop
 
 	rts
-	
+
 charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	cmp.b #'#', d0
 	beq .wall
@@ -583,6 +604,8 @@ setMapTile: ; args: d1.b - x, d2.b - z, A1 - the map ; modifies: D0.b - map cell
 	move.l (SP)+, D2
 	move.l (SP)+, D1
 	rts
+
+
 
 drawMap: ;args: A1 - the map
 	;init
@@ -822,10 +845,21 @@ example_map:
 	dc.b '#......#'
 	dc.b '#......#'
 	dc.b '#....@.#'
-	dc.b '####^^^#'
+	dc.b '####...#'
 	dc.b '#......#'
 	dc.b '#......#'
 	dc.b '#......#'
+
+challenges:
+	dc.b '##..@.##'
+	dc.b '####...#'
+	dc.b '#...####'
+	dc.b '##^^^^##'
+	dc.b '###^^###'
+	dc.b '#......#'
+	dc.b '#......#'
+	dc.b '#......#'
+	
 	
     
 player_position dc.w 0,$100,0
@@ -841,6 +875,7 @@ MAP_SIDE EQU 8
 
 SIN_60 EQU 222 ; in fixed-point rep with <<8, render plane distance from "eye"
     END    START        ; last line of source
+
 
 
 
