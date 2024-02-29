@@ -243,6 +243,22 @@ newlevel_msg: dc.b 'Congratulations! You reached level ', 0
 	
 SIMHALT             ; halt simulator
 * Put variables and constants here
+toggleFullscreen:
+	not.w .is_fullscreen
+	cmp.w #$FFFF, .is_fullscreen
+	beq .set_fullscreen
+	move.l #1, D1
+	move.b #33, D0
+	trap #15
+	bra .end
+.set_fullscreen
+	move.l #2, D1
+	move.b #33, D0
+	trap #15
+.end
+	rts
+.is_fullscreen: dc.w $0000
+
 time_counter dc.w 0
 processGameInput:
 	move.b #'W', D1
@@ -270,6 +286,7 @@ end_pgi:
     cmp.b #$FF, D1
     bne .end
     ;need to put fullscreen stuff here
+	bsr toggleFullscreen
 	
 .end
 	rts
