@@ -7,6 +7,7 @@
     ORG    $1000
 START:                  ; first instruction of program
 
+	bsr initSound
 * Put program code here
 	move.w #3, ship_speed
 	move.w #$180, player_position
@@ -14,6 +15,7 @@ START:                  ; first instruction of program
 	move.w #1, level_number
 	move.l #0, points_score
 	bsr enableDoubleBuffering
+	bsr playMainTheme
 BIGLOOP:
 	bsr clearScreen
 	bsr drawBackground
@@ -70,6 +72,53 @@ points_score dc.l 0
 upgrade_stage: dc.w 0
 upgrade_table: dc.l paperplane_model
 maxUpgrade EQU 0
+
+initSound:
+	lea you_died_sndpath, a1
+	move.b #0, D1
+	bsr loadSound
+	lea maintheme_sndpath, a1
+	move.b #1, D1
+	bsr loadSound
+	rts
+	
+playMainTheme:
+	bsr stopAllSound
+	move.b #1, D1
+	bsr playLoopSound
+	rts
+	
+playDeathSignal:
+	bsr stopAllSound
+	move.b #0, d1
+	bsr playSound
+	rts
+
+loadSound: ; args: (a1) - filepath, d1.b - sound id
+	move.b #71, d0
+	trap #15
+	rts
+
+playSound: ; args: d1.b - sound id
+	move.b #72, d0
+	trap #15
+	rts
+
+stopAllSound: ;args: none
+	move.l #3, D2
+	move.b #76, D0
+	trap #15
+	rts
+
+playLoopSound: ;args: d1.b - sound id
+	move.l #1, D2
+	move.b #76, D0
+	trap #15
+	rts
+
+
+you_died_sndpath: dc.b './died.wav', 0
+maintheme_sndpath: dc.b './haupth.wav', 0
  
 
 getShipModel: ; returns a0 - model address
@@ -180,6 +229,7 @@ killPlayer:
 	move.b #14, D0
 	trap #15
 	bsr repaintScreen
+	bsr playDeathSignal
 .chk_spc
 	move.b #' ', D1
 	bsr areKeysPressed
