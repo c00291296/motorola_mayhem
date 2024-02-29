@@ -32,8 +32,8 @@ BIGLOOP:
 	add.l d0, points_score
 .dont_speedup
 	;stay positive :D
-	cmp.w #$0, player_position+4
-	bgt .dont_advance
+	cmp.w #$6400, player_position+4
+	blt .dont_advance
 	bsr increaseLevel
 	move.w #0, player_position+4
 .dont_advance
