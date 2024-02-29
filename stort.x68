@@ -18,6 +18,7 @@ START:                  ; first instruction of program
 	bsr enableDoubleBuffering
 BIGLOOP:
 	bsr clearScreen
+	bsr drawBackground
 	bsr processGameInput
 	;update stuff
 	move.w ship_speed, d0
@@ -360,7 +361,48 @@ end_pgi:
 	
 .end
 	rts
+
+drawBackground:
+	bsr drawSun
+	bsr drawEarth
+	rts
 	
+drawSun:
+	move.l #$0000C0E0, D1
+	bsr setPenColor
+	bsr setFillColor
+	move.w #(320-60), D1
+ 	 move.w #(240-60), D2
+	  move.w #(320+60), D3
+	   move.w #(240+60), D4
+	   bsr drawEllipse
+	   rts
+
+drawEarth:
+	move.l #$00200500, d1 ;very dark bluish
+	bsr setPenColor
+	bsr setFillColor
+	move.w #0, D1
+	move.w #290, D2
+	move.w #640, D3
+	move.w #480, D4
+	bsr drawRect
+	rts
+
+drawEllipse: ;args: D1 - X1, D2 - Y1, D2 - X2, D3 - Y2
+	move.b #88, D0
+	trap #15
+	rts
+
+drawRect:;args: D1 - X1, D2 - Y1, D2 - X2, D3 - Y2
+	move.b #87, D0
+	trap #15
+	rts
+
+setFillColor: ; args: D1 = $00BBGGRR 
+	move.b #81, D0
+	trap #15
+	rts
 	
 areKeysPressed: ;args: D1.l - 4 key codes; returns: d1.l - 4 booleans
 	move.b #19, D0
