@@ -1,8 +1,8 @@
 *-----------------------------------------------------------
-* Title      : Motorola Magical Maze Murder Mayhem
+* Title      : Assembly Airplane's Acceleratory Advancement And Annihilation
 * Written by : Igor Antonov
 * Date       : 29/01/2024
-* Description: This could become a great game
+* Description: An amazing game about grandiose adventures of a tiny paper airplane who chased the sun.
 *-----------------------------------------------------------
     ORG    $1000
 START:                  ; first instruction of program
@@ -297,7 +297,7 @@ drawBackground:
 	rts
 	
 drawSun:
-	move.l #$0000C0E0, D1
+	move.l #$0000EEFF, D1
 	bsr setPenColor
 	bsr setFillColor
 	move.w #(320-60), D1
@@ -305,7 +305,30 @@ drawSun:
 	  move.w #(320+60), D3
 	   move.w #(240+60), D4
 	   bsr drawEllipse
+	   bsr drawSunLines
 	   rts
+
+drawSunLines:
+	move.l #$0, D0
+	bsr setPenColor
+	bsr SetFillColor
+	;same for all lines
+	move.w #(320-60), D1
+	move.w #(320+60), D3
+	; line 1
+	move.w #(240+18), D2
+	move.w #(240+22), D4
+	bsr drawRect
+	;line 2
+	move.w #(240+30), D2
+	move.w #(240+37), D4
+	bsr drawRect
+	;line 3
+	move.w #(240+45), D2
+	move.w #(240+55), D4
+	bsr drawRect
+	rts
+	
 
 drawEarth:
 	move.l #$00200500, d1 ;very dark bluish
