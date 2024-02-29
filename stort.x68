@@ -13,8 +13,6 @@ START:                  ; first instruction of program
 	move.w #0, player_position+4
 	move.w #1, level_number
 	move.l #0, points_score
-	move.w #0, upgrade_stage
-
 	bsr enableDoubleBuffering
 BIGLOOP:
 	bsr clearScreen
@@ -39,11 +37,6 @@ BIGLOOP:
 	bsr increaseLevel
 	move.w #0, player_position+4
 .dont_advance
-	;let's try drawing a 2d triangle
-	lea example_triangle, A0
-	lea example_triangle+4, A1
-	lea example_triangle+8, A2
-	bsr render2DWireframeTriangle
 	
 	lea example_map, A1
 	bsr drawMap
@@ -51,7 +44,6 @@ BIGLOOP:
 	; draw player
 	move.w player_position, ship_position
 	move.w player_position+4, ship_position+4
-	add.w #256, ship_position+4
 	move.l #$0010AAAA, D1
 	bsr setPenColor
 	bsr getShipModel
@@ -63,13 +55,10 @@ BIGLOOP:
 	lea ship_position, a2
 
 	bsr drawAllTriangles
-	sub.w #256, ship_position+4
 	
 	bsr processCollisions
 	
 	bsr displayPoints
-	
-	bsr processBulletCollision
 .end_chlg
 	bsr repaintScreen
 	bra BIGLOOP
@@ -79,136 +68,9 @@ ship_speed: dc.w 3
 level_number dc.w 1
 points_score dc.l 0
 upgrade_stage: dc.w 0
-bullet_exists: dc.w $0000 ; no bullet
-bullet_position: dc.w 0, 0, 0
-bullet_speed: dc.w 0
-upgrade_table: dc.l car_model, car_gun_model
-maxUpgrade EQU 1
-
-bulletNumber EQU 8
-bulletNoOffset EQU 3
-bulletNoBitmask EQU $7
-
-bullet_positions:
-    dcb.w 3*bulletNumber,$0000
-bullet_existances:
-    dcb.w bulletNumber,0
-next_bullet: dc.l 0
-
-processAllBullets:
-    move.w #(bulletNumber-1), D7
-.loop
-    move.l bullet_existances, a6
-    move.l bullet_positions, a5
-    move.w (a6), bullet_exists
-    move.w (a5), bullet_position
-    move.w 2(a5), bullet_position+2
-    move.w 4(a5), bullet_position+4
-    bsr drawBullet
-    bsr updateBullet
-    
-    move.w bullet_exists, (a6)
-    move.w bullet_position, (a5)
-    move.w bullet_position+2, 2(a5)
-    move.w bullet_position+4, 4(a5)
-    
-    add.l #6, A5
-    add.l #2, A6
-    
-
-    dbra d7, .loop
-.end
-    rts
-
-drawBullet:
-    cmp.w #$FFFF, bullet_exists
-    bne .end
-    move.l #$001010AA, D1 ; red
-	bsr setPenColor
-	lea bullet_model, A0
-	lea $10000, A1
-	lea bullet_position, a2
-	bsr projectAllModelVertices
-	lea bullet_model, a0
-	lea $10000, A1
-	lea bullet_position, a2
-	bsr drawAllTriangles
-.end
-    rts
-    
-updateBullet:
-    move.w bullet_speed, d0
-    add.w d0, bullet_position+4
-    move.w bullet_position+4, d0
-    sub.w player_position+4, d0
-    cmp.w #$500, d0
-    ble .end
-    ;disappear when too far
-    move.w #$0000, bullet_exists
-.end
-    rts
-
-tryShoot:
-    ;original_function
-    cmp.w #$FFFF, bullet_exists
-    beq .end
-    move.w #$FFFF, bullet_exists
-    move.w ship_position, bullet_position
-    move.w 0, bullet_position+2
-    move.w ship_position+4, bullet_position+4
-    move.w ship_speed, d0
-    asl.w #2, d0
-    move.w d0, bullet_speed ; 4x as fast as the player
-    ;end original function
-.end
-    rts
-    
-processBulletCollision:
-	clr.l D1
-	clr.l D2
-	move.w bullet_position, D1
-	add.w #128, D1
-	move.w bullet_position+4, D2
-	add.w #128, D2
-	add.w #0,d1
-	asr.w #8, D1
-	asr.w #8, D2
-	lea example_map, A1
-	bsr getMapTile
-	bsr bulletTileCollide
-	rts
-
-bulletTileCollide:
-	cmp.b #'^', D0
-	bne .wall
-	move.b #'.', D0
-	bsr setMapTile
-	move.w #$0000, bullet_exists
-	add.l #5, points_score
-.wall
-	cmp.b #'#', D0
-	bne .end
-	move.w #$0000, bullet_exists
-.end
-	rts
-
-copyRow: ;args: d2 - row
-	; init
-	clr.b d1
-	move.w #(MAP_SIDE-1), D7
-.loop
-	lea challenges, a1
-	move.b D2, -(SP)
-	move.b .challenge_num, d2
-	bsr getMapTile
-	lea example_map, a1
-	move.b (SP)+, D2
-	bsr setMapTile
-	add.b #1, D1
-	dbra d7,.loop
-	add.b #1, .challenge_num
-	rts
-.challenge_num dc.w $0000
+upgrade_table: dc.l paperplane_model
+maxUpgrade EQU 0
+ 
 
 getShipModel: ; returns a0 - model address
     lea upgrade_table, A0
@@ -335,7 +197,7 @@ time_counter dc.w 0
 processGameInput:
 	move.b #'W', D1
 	LSL.l #8, D1
-	move.b #' ', D1
+	move.b #'F', D1
 	LSL.l #8, D1
 	move.b #'A', D1
 	LSL.l #8, D1
@@ -357,7 +219,7 @@ end_pgi:
     lsr.l #8, D1
     cmp.b #$FF, D1
     bne .end
-    bsr tryShoot
+    ;need to put fullscreen stuff here
 	
 .end
 	rts
@@ -581,8 +443,6 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
 	beq .wall
 	cmp.b #'@', D0
 	beq .powerup
-	cmp.b #'^', D0
-	beq .trap
 .floor
 	lea floor_tile, a0
 	bra .end
@@ -591,9 +451,6 @@ charToModel: ;args d0.b - map cell char ; returns: A0 - model address
     bra .end
 .wall
 	lea example_model, a0
-	bra .end
-.trap
-	lea pyramid2, a0
 	bra .end
 .end
 	rts
@@ -747,21 +604,6 @@ pyramid_triangles:
     dc.b 2,4, 3
     dc.b 2, 4, 0
     
-pyramid2:
-	dc.b 5
-	dc.b 6
-	dc.w -128, 0, -128
-	dc.w -128, 0, 128
-	dc.w 128, 0, -128
-	dc.w 128, 0, 128
-	dc.w 0, $100, 0
-	dc.b 0, 1, 2
-	dc.b 2, 3, 1
-	dc.b 0, 4, 1
-	dc.b 1,4,3
-	dc.b 2,4, 3
-	dc.b 2, 4, 0
-    
 floor_tile:
 	dc.b 4 ;v
 	dc.b 4 ;t
@@ -773,19 +615,6 @@ floor_tile:
 	dc.b 1, 2, 2
 	dc.b 2, 3, 3
 	dc.b 3, 0, 0
-
-spaceship_model:
-	dc.b 5
-	dc.b 4
-	dc.w -136, 128, -128
-	dc.w 120, 128, -128
-	dc.w -8, 160, -128
-	dc.w -8, 96, -128
-	dc.w 0, 128, 128 ;pointy end
-	dc.b 0, 2, 4
-	dc.b 2, 1, 4
-	dc.b 1, 3, 4
-	dc.b 3, 0, 4
 
 paperplane_model:
     dc.b 5
@@ -800,109 +629,17 @@ paperplane_model:
     dc.b 0, 1, 4
     
     dc.b $ff ;  word padding garbage
-    
-car_model:
-	dc.b 8
-	dc.b 6
-	;lower points
-	dc.w -128, 0, 128
-	dc.w 128, 0, 128
-	dc.w 128, 0, -128
-	dc.w -128, 0, -128
-	;upper points
-	dc.w -96, 96, 96
-	dc.w 96, 96, 96
-	dc.w 96, 96, -96
-	dc.w -96, 96, -96
-	;triangles
-	dc.b 4, 5, 6
-	dc.b 6, 7, 4
-	; back thingies
-	dc.b 3, 6, 7
-	dc.b 2, 6, 7
-	; front things
-	dc.b 0, 4, 5
-	dc.b 1, 4, 5
-
-car_gun_model:
-	dc.b 12
-	dc.b 9
-	;lower points
-	dc.w -128, 0, 128
-	dc.w 128, 0, 128
-	dc.w 128, 0, -128
-	dc.w -128, 0, -128
-	;upper points
-	dc.w -96, 96, 96
-	dc.w 96, 96, 96
-	dc.w 96, 96, -96
-	dc.w -96, 96, -96
-	;the gun
-	dc.w 0, 96, 0
-	dc.w -8, 96, 144
-	dc.w 8, 96, 144
-
-	dc.w 0, 112, 144
-	;triangles
-	dc.b 4, 5, 6
-	dc.b 6, 7, 4
-	; back thingies
-	dc.b 3, 6, 7
-	dc.b 2, 6, 7
-	; front things
-	dc.b 0, 4, 5
-	dc.b 1, 4, 5
-	;gun triangles
-	dc.b 8, 9, 10
-	dc.b 8, 10, 11
-	dc.b 8, 11, 9
-
-    dc.b $ff ; word alignment garbage
-
-bullet_model
-    dc.b 3 ; 3 vertices
-    dc.b 1 ; 1 triangle
-    ;points
-    dc.w -8, 96, 0
-    dc.w 8, 96, 0
-    dc.w 0, 96, 16
-    ;trinagle
-    dc.b 0, 1, 2
-
-    dc.b $FF ; word alignment garbage
-
 	
-powerup_model:
-    dc.b 4 ; four points
-    dc.b 2 ; 2 "triangles"
-    dc.w 0, 0, 0
-    dc.w 0, 64, 0
-    dc.w 0, 96, 0
-    dc.w 32, 80, 0
-    dc.b 1,2,3
-    dc.b 0, 1, 1
 
 example_map:
 	dc.b '#...####'
 	dc.b '#......#'
 	dc.b '#......#'
-	dc.b '#....@.#'
+	dc.b '#......#'
 	dc.b '####...#'
 	dc.b '#......#'
 	dc.b '#......#'
 	dc.b '#......#'
-
-challenges:
-	dc.b '##..@.##'
-	dc.b '####...#'
-	dc.b '#...####'
-	dc.b '##^^^^##'
-	dc.b '###^^###'
-	dc.b '#......#'
-	dc.b '#......#'
-	dc.b '#......#'
-	
-	
     
 player_position dc.w 0,$100,0
 
