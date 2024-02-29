@@ -63,7 +63,7 @@ BIGLOOP:
 	bsr repaintScreen
 	bra BIGLOOP
 	
-ship_position: dc.w 0, 0, 0
+ship_position: dc.w 0, -64, 0
 ship_speed: dc.w 3
 level_number dc.w 1
 points_score dc.l 0
@@ -619,11 +619,11 @@ floor_tile:
 paperplane_model:
     dc.b 5
     dc.b 3
-    dc.w 0, 96, 128
-    dc.w -8, 96, -128
+    dc.w 0, 128, 128
+    dc.w -8, 128, -32
     dc.w -128, 128, -128
     dc.w 128, 128, -128
-    dc.w -8, 80, -128 
+    dc.w -8, 96, -32 
     dc.b 0, 1, 2
     dc.b 0, 1, 3
     dc.b 0, 1, 4
