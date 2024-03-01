@@ -1,5 +1,5 @@
 *-----------------------------------------------------------
-* Title      : Assembly Airplane's Acceleratory Advancement And Annihilation
+* Title      : Assembly Airplane's Astonishing Acceleratory Advancement And Annihilation
 * Written by : Igor Antonov
 * Date       : 29/01/2024
 * Description: An amazing game about grandiose adventures of a tiny paper airplane who chased the sun.
